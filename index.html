@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opai Elsheikh</title>
+  <meta name="description" content="Personal website of Opai Elsheikh">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #fbf9f5;
+      --text-main: #1b1b1b;
+      --text-muted: #646059;
+      --border-color: #eae6df;
+      --accent-color: #c25936;
+      --accent-hover: #9e4324;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 5rem 1.5rem 4rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* Header */
+    h1.name {
+      font-family: var(--font-serif);
+      font-size: 3.4rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 1.25rem;
+      line-height: 1.1;
+    }
+
+    /* Bio Paragraph */
+    .bio {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+      margin-bottom: 3.5rem;
+      max-width: 620px;
+    }
+
+    .bio a {
+      color: var(--text-muted);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #b5b0a6;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .bio a:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    /* Section Accordion / Navigation */
+    .sections-list {
+      border-top: 1px solid var(--border-color);
+      margin-bottom: 2.5rem;
+    }
+
+    .section-item {
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-trigger {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 1.1rem 0;
+      background: none;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.15s ease;
+    }
+
+    .section-trigger:hover {
+      color: var(--text-main);
+    }
+
+    .section-prefix {
+      margin-right: 0.6rem;
+      display: inline-block;
+      transition: transform 0.2s ease;
+      font-weight: bold;
+    }
+
+    .section-item.open .section-prefix {
+      transform: rotate(90deg);
+    }
+
+    .section-content {
+      display: none;
+      padding: 0 0 1.25rem 1.4rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .section-item.open .section-content {
+      display: block;
+    }
+
+    .section-content p {
+      margin-bottom: 0.75rem;
+    }
+
+    .section-content ul {
+      list-style-type: square;
+      padding-left: 1.2rem;
+    }
+
+    .section-content li {
+      margin-bottom: 0.4rem;
+    }
+
+    /* Sparkline Chart */
+    .sparkline-wrapper {
+      margin-bottom: 2rem;
+    }
+
+    .sparkline-svg {
+      display: block;
+      width: 220px;
+      height: 38px;
+    }
+
+    .sparkline-path {
+      stroke: var(--accent-color);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+      animation: drawLine 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes drawLine {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Footer Social Links */
+    .social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .social-links a {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .social-links a:hover {
+      color: var(--text-main);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      body {
+        padding: 3rem 1.25rem;
+      }
+      h1.name {
+        font-size: 2.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <!-- Header Title -->
+    <h1 class="name">Opai Elsheikh</h1>
+
+    <!-- Bio / Subtitle -->
+    <p class="bio">
+      RL Resident Researcher at <a href="https://www.primeintellect.ai" target="_blank" rel="noopener">Prime Intellect</a>, working on long-horizon reinforcement learning environments, agentic systems, and the infrastructure that makes capable models more reliable.
+    </p>
+
+    <!-- Navigation / Accordion Sections -->
+    <div class="sections-list">
+      
+      <!-- ABOUT -->
+      <div class="section-item">
+        <button class="section-trigger" onclick="toggleSection(this)">
+          <span class="section-prefix">&gt;</span> ABOUT
+        </button>
+        <div class="section-content">
+          <p>I focus on agentic AI, reinforcement learning, and building resilient software infrastructure.</p>
+        </div>
+      </div>
+
+      <!-- PROJECTS -->
+      <div class="section-item">
+        <button class="section-trigger" onclick="toggleSection(this)">
+          <span class="section-prefix">&gt;</span> PROJECTS
+        </button>
+        <div class="section-content">
+          <ul>
+            <li><strong>Agentic RL Benchmarks</strong> — Environments for testing long-horizon agent reasoning.</li>
+            <li><strong>Distributed Training Infra</strong> — Scalable pipelines for reinforcement learning models.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- BLOGS -->
+      <div class="section-item">
+        <button class="section-trigger" onclick="toggleSection(this)">
+          <span class="section-prefix">&gt;</span> BLOGS
+        </button>
+        <div class="section-content">
+          <p>Articles and thoughts coming soon.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sparkline Graphic -->
+    <div class="sparkline-wrapper">
+      <svg class="sparkline-svg" viewBox="0 0 220 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="0" y1="34" x2="220" y2="34" stroke="#eae6df" stroke-width="1" />
+        <path class="sparkline-path" d="M 0 32 L 18 32 L 27 34 L 45 29 L 54 31 L 72 25 L 81 28 L 99 23 L 108 26 L 126 20 L 135 23 L 153 16 L 162 19 L 180 13 L 198 15 L 216 9" />
+      </svg>
+    </div>
+
+    <!-- Footer Links -->
+    <footer class="social-links">
+      <a href="https://github.com/opaielsheikh" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://linkedin.com/in/opaielsheikh" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://x.com/opaielsheikh" target="_blank" rel="noopener">X</a>
+      <a href="#" target="_blank" rel="noopener">Goodreads</a>
+    </footer>
+
+  </main>
+
+  <script>
+    function toggleSection(button) {
+      const item = button.parentElement;
+      item.classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
