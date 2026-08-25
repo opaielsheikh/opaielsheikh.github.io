@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blogs | Opai Elsheikh</title>
+  <meta name="description" content="Blogs and reflections by Opai Elsheikh">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #fbf9f5;
+      --text-main: #1b1b1b;
+      --text-muted: #646059;
+      --border-color: #eae6df;
+      --accent-color: #c25936;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 4.5rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    /* Top Nav */
+    .nav-back {
+      margin-bottom: 2.5rem;
+    }
+
+    .nav-back a {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .nav-back a:hover {
+      color: var(--text-main);
+    }
+
+    /* Header */
+    h1.page-title {
+      font-family: var(--font-serif);
+      font-size: 3.2rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      margin-bottom: 0.75rem;
+      line-height: 1.1;
+    }
+
+    .collection-intro {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 3.5rem;
+      line-height: 1.6;
+    }
+
+    /* Blog List Entries */
+    .collection-entry {
+      border-top: 1px solid var(--border-color);
+      padding: 2rem 0;
+    }
+
+    .collection-entry:last-of-type {
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 4rem;
+    }
+
+    .collection-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--text-main);
+      text-decoration: none;
+      line-height: 1.35;
+      display: block;
+      margin-bottom: 0.5rem;
+      transition: color 0.15s ease;
+    }
+
+    .collection-title:hover {
+      color: var(--accent-color);
+    }
+
+    .collection-meta {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #9a948a;
+      display: block;
+      margin-bottom: 1rem;
+    }
+
+    .collection-description {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      font-style: italic;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+
+    .collection-action {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-color);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #e2a691;
+      transition: color 0.15s ease;
+    }
+
+    .collection-action:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    /* Footer Social Links */
+    .social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .social-links a {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .social-links a:hover {
+      color: var(--text-main);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 2.5rem 1.25rem;
+      }
+      h1.page-title {
+        font-size: 2.5rem;
+      }
+      .collection-title {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    
+    <!-- Top Nav -->
+    <nav class="nav-back">
+      <a href="/">&larr; Opai Elsheikh</a>
+    </nav>
+
+    <!-- Header -->
+    <h1 class="page-title">Blogs</h1>
+    <p class="collection-intro">Notes, reflections, and questions on life, technology, and learning.</p>
+
+    <!-- Entries -->
+    <article class="collection-entry">
+      <p style="margin-bottom: 0.5rem;"><a class="collection-title" href="/blogs/trust-in-allah/">Do you think that if you put your full trust in Allah, your life will be worse or better?</a></p>
+      <span class="collection-meta">August 25, 2026 &middot; Opai Elsheikh</span>
+      <p class="collection-description">Do you think that if you put your full trust in Allah, your life will be worse or better?</p>
+      <p><a class="collection-action" href="/blogs/trust-in-allah/">Read blog &rarr;</a></p>
+    </article>
+
+    <!-- Footer Links -->
+    <footer class="social-links">
+      <a href="https://github.com/opaielsheikh" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/opai-elsheikh-0988181b9/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://x.com/opaisOfficial" target="_blank" rel="noopener">X</a>
+      <a href="#" target="_blank" rel="noopener">Goodreads</a>
+    </footer>
+
+  </main>
+
+</body>
+</html>

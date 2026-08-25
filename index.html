@@ -194,6 +194,40 @@
       color: var(--text-main);
     }
 
+    /* Blog Link List */
+    .blog-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .blog-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .blog-link {
+      color: var(--text-muted);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #b5b0a6;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+      line-height: 1.5;
+    }
+
+    .blog-link:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    .blog-date {
+      font-size: 0.8rem;
+      color: #9a948a;
+      white-space: nowrap;
+    }
+
     /* Responsive */
     @media (max-width: 640px) {
       body {
@@ -201,6 +235,10 @@
       }
       h1.name {
         font-size: 2.6rem;
+      }
+      .blog-item {
+        flex-direction: column;
+        gap: 0.2rem;
       }
     }
   </style>
@@ -243,12 +281,18 @@
       </div>
 
       <!-- BLOGS -->
-      <div class="section-item">
+      <div class="section-item open">
         <button class="section-trigger" onclick="toggleSection(this)">
           <span class="section-prefix">&gt;</span> BLOGS
         </button>
         <div class="section-content">
-          <p>Articles and thoughts coming soon.</p>
+          <ul class="blog-list">
+            <li class="blog-item">
+              <a href="/blogs/trust-in-allah/" class="blog-link">Do you think that if you put your full trust in Allah, your life will be worse or better?</a>
+              <span class="blog-date">Aug 2026</span>
+            </li>
+          </ul>
+          <p style="margin-top: 0.8rem;"><a href="/blogs/" class="blog-link" style="font-size: 0.82rem;">View all blogs &rarr;</a></p>
         </div>
       </div>
 
