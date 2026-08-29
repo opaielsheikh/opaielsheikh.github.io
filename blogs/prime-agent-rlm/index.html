@@ -308,6 +308,15 @@
       white-space: pre;
     }
 
+    .code-block code {
+      display: block;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      font-size: inherit;
+      padding: 0;
+    }
+
     .code-caption {
       font-family: var(--font-mono);
       font-size: 0.78rem;
@@ -447,7 +456,7 @@
         <a class="toc-link" href="#related-reading">Related Reading</a>
         <a class="toc-link" href="#what-is-a-harness">What Is a Harness?</a>
         <a class="toc-link" href="#what-is-an-rlm">What Is an RLM?</a>
-        <a class="toc-link" href="#rlm-in-code">A Tiny RLM in Code</a>
+        <a class="toc-link" href="#rlm-in-code">Real Prime Agent Code</a>
         <a class="toc-link" href="#prime-agent-architecture">The Prime Agent Architecture</a>
         <a class="toc-link sub" href="#persistent-repl">Persistent REPL</a>
         <a class="toc-link sub" href="#subagents">Subagents</a>
@@ -550,45 +559,85 @@
           Prime Agent extends this idea from model calls to full agent sessions. A child created by <code>rlm(...)</code> is not just a small completion. It is a real subagent with its own context, kernel, history, and session state.
         </p>
 
-        <h2 id="rlm-in-code">A Tiny RLM in Code</h2>
+        <h2 id="rlm-in-code">Real Prime Agent Code</h2>
         <p>
-          The easiest way to understand an RLM is to strip it down to a toy version. This is not Prime Agent's real implementation, but it shows the important shift: the model is no longer only answering a prompt. It is operating inside a persistent environment with memory and tools.
+          The real Prime Agent repo is public, so the post should show the actual programming surface rather than a toy version. A reader should be able to look at this and understand how the system is meant to be run.
         </p>
 
-        <pre class="code-block"><code>class TinyRLMHarness:
-    def __init__(self, model):
-        self.model = model
-        self.memory = []
-        self.files = {}
+        <pre class="code-block"><code># Install the latest stable release on macOS or Linux.
+curl -fsSL https://app.primeintellect.ai/prime-agent/install.sh | sh
 
-    def remember(self, note):
-        self.memory.append(note)
+# Start Prime Agent inside the project you want it to work on.
+cd /path/to/project
+prime-agent
 
-    def write_file(self, name, content):
-        self.files[name] = content
-        self.remember(f"wrote {name}")
-
-    def ask(self, task):
-        context = "\n".join(self.memory[-8:])
-        prompt = f"""
-You are working inside a persistent harness.
-
-Recent memory:
-{context}
-
-Task:
-{task}
-"""
-        answer = self.model(prompt)
-        self.remember(f"task: {task}\nanswer: {answer[:500]}")
-        return answer</code></pre>
+# If you want to run from source instead:
+git clone https://github.com/PrimeIntellect-ai/prime-agent
+cd prime-agent
+npm ci
+./prime-agent.sh</code></pre>
 
         <p class="code-caption">
-          The real lesson is not the class. The lesson is the state: memory, files, tools, and previous work live outside the model call.
+          This is from the Prime Agent quickstart. You do not need a huge training cluster just to run the agent; the expensive part is model usage, not local installation.
         </p>
 
         <p>
-          Prime Agent makes that idea much more serious. Instead of a toy dictionary called <code>files</code>, it has a real runtime. Instead of a fake <code>model()</code> call, it can create persistent subagents, run project commands, inspect outputs, and refine durable harness state after a task.
+          Once Prime Agent is running, the model's main built-in tool is a persistent Python REPL. That means ordinary inspection, shell commands, and delegated work happen through code:
+        </p>
+
+        <pre class="code-block"><code>from pathlib import Path
+
+config_files = list(Path(".").rglob("*.toml"))
+large_files = [path for path in config_files if path.stat().st_size &gt; 10_000]
+
+result = await bash("npm run check")
+print(result.output)</code></pre>
+
+        <p>
+          The important difference from a normal tool-calling chatbot is that Python state survives across later turns and compaction. Variables, imports, helper functions, parsed files, and child-agent handles can remain available instead of being squeezed into one giant prompt.
+        </p>
+
+        <p>
+          The signature feature is the recursive subagent call. In the docs, a parent agent can spawn focused children like this:
+        </p>
+
+        <pre class="code-block"><code>api_review = await rlm("Review the public API", name="api-reviewer")
+test_review = await rlm("Review the test coverage", name="test-reviewer")
+integration_audit = await rlm("Run the slow integration audit", name="integration-audit")
+
+children = await rlm.list_subagents()
+for child in children:
+    print(child.session_name, child.status, child.active_session_id)</code></pre>
+
+        <p class="code-caption">
+          The <code>rlm(...)</code> call returns a child handle immediately. The child does not return its final answer through that function call; results come back through explicit agent messages or files.
+        </p>
+
+        <p>
+          That behavior is visible in the source too. In <code>prime-agent-runtime/src/rlm/__init__.py</code>, the Python-facing <code>rlm</code> object is a callable wrapper around host-owned child execution:
+        </p>
+
+        <pre class="code-block"><code>@dataclass(frozen=True)
+class RLMSpawnHandle:
+    rlm_child_id: str
+    name: str
+    session_dir: Path
+    model: str
+
+class _RLMCallable:
+    async def run(self, prompt: str, **kwargs: Any) -&gt; RLMSpawnHandle:
+        return await run(prompt, **kwargs)
+
+    async def list_subagents(self) -&gt; list[RLMSubagent]:
+        return await list_subagents()
+
+    async def __call__(self, prompt: str, **kwargs: Any) -&gt; RLMSpawnHandle:
+        return await run(prompt, **kwargs)
+
+rlm = _RLMCallable()</code></pre>
+
+        <p>
+          This small excerpt explains the architecture: Python is the model-facing control surface, but the TypeScript host owns the real lifecycle, child sessions, persistence, provider calls, and accounting. That separation is why Prime Agent can feel like a programmable agent OS rather than just another chat wrapper.
         </p>
 
         <h2 id="prime-agent-architecture">The Prime Agent Architecture</h2>
@@ -792,6 +841,14 @@ def review_refinement(proposed_text, source_task, evidence_count):
           <div class="reading-row">
             <strong>Prime Agent repository</strong>
             <span><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">PrimeIntellect-ai/prime-agent</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Prime Agent quickstart</strong>
+            <span><a href="https://github.com/PrimeIntellect-ai/prime-agent/blob/main/packages/coding-agent/docs/quickstart.md" target="_blank" rel="noopener">Install, auth, and first session</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Prime Agent RLM docs</strong>
+            <span><a href="https://github.com/PrimeIntellect-ai/prime-agent/blob/main/packages/coding-agent/docs/rlm.md" target="_blank" rel="noopener">RLM programming model</a></span>
           </div>
           <div class="reading-row">
             <strong>Recursive Language Models</strong>

@@ -1,0 +1,816 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - button "Toggle contents" [expanded] [active] [ref=e3] [cursor=pointer]
+    - complementary "Table of contents" [ref=e527]:
+      - paragraph [ref=e528]: Contents
+      - navigation [ref=e529]:
+        - link "From Tasks to Environments" [ref=e530] [cursor=pointer]:
+          - /url: "#from-tasks-to-environments"
+        - link "The Core Architecture" [ref=e531] [cursor=pointer]:
+          - /url: "#core-architecture"
+        - link "State Architectures" [ref=e532] [cursor=pointer]:
+          - /url: "#state-architectures"
+        - link "Memory for Hours- and Days-Long Tasks" [ref=e533] [cursor=pointer]:
+          - /url: "#memory-hours-days"
+        - link "Tool and Action Architectures" [ref=e534] [cursor=pointer]:
+          - /url: "#tool-action-architectures"
+        - link "Reward and Credit Assignment" [ref=e535] [cursor=pointer]:
+          - /url: "#reward-credit-assignment"
+        - link "How to Build a 12-Hour Environment" [ref=e536] [cursor=pointer]:
+          - /url: "#twelve-hour-environment"
+        - link "Training on Long-Horizon Environments" [ref=e537] [cursor=pointer]:
+          - /url: "#training-long-horizon"
+        - link "Evaluating Long-Horizon Agents" [ref=e538] [cursor=pointer]:
+          - /url: "#evaluating-long-horizon"
+        - link "What Should We Build Next?" [ref=e539] [cursor=pointer]:
+          - /url: "#what-build-next"
+        - link "Conclusion" [ref=e540] [cursor=pointer]:
+          - /url: "#conclusion"
+  - main [ref=e15]:
+    - navigation [ref=e16]:
+      - link "← Opai Elsheikh" [ref=e17] [cursor=pointer]:
+        - /url: /
+    - article [ref=e18]:
+      - generic [ref=e19]:
+        - paragraph [ref=e20]: Agentic AI
+        - heading "The Architecture of Long-Horizon Agents" [level=1] [ref=e21]
+        - paragraph [ref=e22]: An environment-first guide to persistent state, memory, tools, rewards, training, and evaluation for agents that operate over hours or days.
+        - paragraph [ref=e23]: August 25, 2026 · Opai Elsheikh
+      - generic [ref=e26]:
+        - paragraph [ref=e27]:
+          - text: "Reinforcement learning is built around a simple idea: an agent improves by acting in an environment and learning from feedback. Its foundations are described in"
+          - link [ref=e28] [cursor=pointer]:
+            - /url: https://mitpress.mit.edu/9780262039246/reinforcement-learning/
+            - text: Sutton and Barto’s
+            - emphasis [ref=e29]: "Reinforcement Learning: An Introduction"
+          - text: . Early systems usually worked in small environments with short episodes and clear rewards.
+        - paragraph [ref=e30]:
+          - text: Deep learning made these systems far more capable.
+          - link "AlphaGo" [ref=e31] [cursor=pointer]:
+            - /url: https://www.nature.com/articles/nature16961
+          - text: combined neural networks, self-play, and search, while
+          - link "AlphaGo Zero" [ref=e32] [cursor=pointer]:
+            - /url: https://www.nature.com/articles/nature24270
+          - text: learned from the rules and self-play alone.
+          - link "OpenAI Five" [ref=e33] [cursor=pointer]:
+            - /url: https://openai.com/index/openai-five/
+          - text: showed that RL could also handle real-time, multi-agent environments with delayed consequences.
+        - paragraph [ref=e34]:
+          - text: Language models also changed how agents are trained and improved.
+          - link "DeepSeek’s GRPO" [ref=e35] [cursor=pointer]:
+            - /url: https://arxiv.org/abs/2402.03300
+          - text: uses relative rewards across sampled solutions to improve reasoning, while Thinking Machines Lab’s work on
+          - link "on-policy distillation" [ref=e36] [cursor=pointer]:
+            - /url: https://thinkingmachines.ai/blog/on-policy-distillation/
+          - text: studies how a smaller model can learn from a stronger teacher while generating its own training experience. Together, these methods point toward agents that can reason, act, and improve through repeated interaction.
+        - paragraph [ref=e37]: These advances reveal the difference between a convincing demo and reliable long-horizon behavior. Tasks lasting hours or days require persistent state, useful memory, external events, side-effectful tools, recovery, and delayed rewards. The environment determines what the agent can observe, change, and remember.
+        - paragraph [ref=e38]: This article takes an environment-first view. We will cover state, time, events, actions, memory, rewards, tools, multi-agent settings, credit assignment, failure modes, training, evaluation, and the path from isolated tasks to persistent worlds.
+        - heading "From Tasks to Environments" [level=2] [ref=e39]
+        - figure [ref=e40]:
+          - img "Diagram comparing a static task with a persistent environment containing an agent, tools, memory, world state, external events, other actors, and time." [ref=e41]
+        - paragraph [ref=e42]:
+          - text: A normal benchmark task is often presented as a prompt, a fixed set of tools, a sequence of actions, and a final answer. This works well when the task is short and the world remains unchanged while the model is reasoning. For example, a coding benchmark may give an agent a GitHub issue and ask it to produce a patch, as in
+          - link "SWE-bench" [ref=e43] [cursor=pointer]:
+            - /url: https://github.com/SWE-bench/SWE-bench
+          - text: .
+        - paragraph [ref=e44]:
+          - text: That abstraction becomes weaker as the horizon grows. If an agent works for twelve hours or three days, new information arrives, tools change state, people respond later, and earlier decisions affect what becomes possible next. A pull request can receive review comments, a test pipeline can fail after a delay, or a business workflow can wait for a human response. Systems such as
+          - link "GitHub Actions" [ref=e45] [cursor=pointer]:
+            - /url: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+          - text: and
+          - link "AWS Step Functions" [ref=e46] [cursor=pointer]:
+            - /url: https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html
+          - text: are useful examples of software environments where events and state continue to evolve over time.
+        - paragraph [ref=e47]:
+          - text: An environment is therefore more than a task description. It is a persistent world containing state, tools, time, external events, constraints, and consequences. This is closely related to the
+          - link "Harbor framework" [ref=e48] [cursor=pointer]:
+            - /url: https://github.com/harbor-framework/harbor
+          - text: ", which is used for running agent evaluations and RL environments. Harbor packages an instruction, an environment, and a verifier; the JSON below is a simplified, Harbor-style representation of a long-horizon coding task:"
+        - generic [ref=e49]:
+          - button "Copy JSON" [ref=e50] [cursor=pointer]
+          - code [ref=e52]: "{ \"task_id\": \"checkout-auth-001\", \"instruction\": \"Fix the failing authentication test\", \"environment\": { \"image\": \"checkout-service:latest\", \"os\": \"linux\", \"working_directory\": \"/workspace\", \"resources\": {\"cpu\": 4, \"memory_gb\": 16} }, \"initial_state\": { \"repository\": \"checkout-service\", \"branch\": \"agent/fix-auth\", \"tests\": {\"authentication\": \"failing\"} }, \"tools\": [\"terminal\", \"git\", \"test_runner\"], \"external_events\": [\"review_comment_received\", \"ci_run_finished\"], \"constraints\": [\"do not expose credentials\"], \"verifier\": {\"tests_pass\": 1, \"regression\": -1} }"
+        - paragraph [ref=e53]: "The key distinction is between what the model currently sees and what is actually true. The context window contains the agent’s current observation: perhaps the latest test output, one review comment, and a small portion of the repository. The environment contains the complete state of the world, including files not yet opened, pending events, hidden constraints, and consequences from earlier actions. Long-horizon agents must repeatedly observe the environment and update their beliefs instead of treating the first prompt as a complete description."
+        - paragraph [ref=e54]: A task gives an agent something to solve. An environment gives it somewhere to operate. For long-horizon agents, that distinction is fundamental. Evaluation must therefore move beyond asking, “Can the model solve this task?” and ask, “Can the agent operate correctly inside a changing world over time?”
+        - heading "The Core Architecture of a Long-Horizon Environment" [level=2] [ref=e55]
+        - paragraph [ref=e56]: "A long-horizon environment is not just an LLM connected to a larger collection of tools. It is a system that persists, changes, and records consequences while the agent works inside it. The agent sees only an observation of that system, acts through an interface, and is eventually judged on a trajectory that may span hours or days. Most such environments can be understood through six primitives: state, time, events, actions, memory, and rewards."
+        - figure [ref=e57]:
+          - img "Diagram showing events, memory, an agent, actions, state, observations, time, and delayed rewards in a long-horizon environment." [ref=e58]
+        - heading "State" [level=3] [ref=e59]
+        - paragraph [ref=e60]:
+          - text: State is the source of truth for the world. It is not the model’s context window and it is not the conversation transcript. It can include files, database rows, emails, account balances, open cases, task progress, permissions, and decisions already made. A useful abstraction is
+          - code [ref=e61]:
+            - text: S
+            - subscript [ref=e62]: t
+          - text: ", the world state at time"
+          - code [ref=e63]: t
+          - text: . When the agent takes an action, it changes the conditions from which the next action must be chosen. A reliable environment therefore needs durable state that can be inspected, updated, and recovered independently of the model process.
+        - heading "Time" [level=3] [ref=e64]
+        - paragraph [ref=e65]: "Long-horizon systems have two clocks. Agent time counts reasoning steps, messages, and tool calls. World time counts hours, deadlines, waiting periods, and background processes. These clocks do not have to move together: an agent may make no call for four hours while a deadline approaches or a job finishes. This is why an environment needs explicit support for waiting, scheduled actions, timeouts, and sometimes accelerated simulation. Without world time, a long task is only a long transcript."
+        - heading "Events" [level=3] [ref=e66]
+        - paragraph [ref=e67]:
+          - text: Events are changes that do not necessarily originate from the agent. An email can arrive, a customer can reply, an experiment can finish, another employee can edit a file, an API can fail, or a price can move. A simple transition model is
+          - code [ref=e68]:
+            - text: S
+            - subscript [ref=e69]: t+1
+            - text: = f(S
+            - subscript [ref=e70]: t
+            - text: ", A"
+            - subscript [ref=e71]: t
+            - text: ", E"
+            - subscript [ref=e72]: t
+            - text: )
+          - text: ", where"
+          - code [ref=e73]:
+            - text: A
+            - subscript [ref=e74]: t
+          - text: is the agent’s action and
+          - code [ref=e75]:
+            - text: E
+            - subscript [ref=e76]: t
+          - text: "is the external event stream. This makes the environment genuinely dynamic: it can change while the agent is reasoning, waiting, or offline."
+        - heading "Actions" [level=3] [ref=e77]
+        - paragraph [ref=e78]: Actions are the interface through which the agent changes the environment. They are not all equally consequential. Reading a database is different from approving a claim; searching a repository is different from merging a pull request. Actions can have cost, latency, permissions, side effects, reversibility, and downstream consequences. The most interesting long-horizon environments are those in which an action changes the future decision space. The agent must consider not only whether a tool call succeeds, but what options it removes or creates later.
+        - heading "Memory" [level=3] [ref=e79]
+        - paragraph [ref=e80]: Memory belongs to the agent, while state belongs to the environment. The world may contain thousands of emails, but the agent may need to retain only three critical facts and the evidence supporting them. Useful memory can be divided into working memory for the current subtask, episodic memory for past events, semantic memory for durable knowledge, and artifact memory for files or other outputs. The central design problem is deciding what to preserve, what to compress, and what to retrieve later. Placing an entire three-day trajectory into the context window is not a memory architecture.
+        - heading "Rewards" [level=3] [ref=e81]
+        - paragraph [ref=e82]:
+          - text: "Rewards determine which trajectories are worth repeating. In a short task, the reward may be equivalent to a correct final answer. In a long task, evaluation often needs to combine outcome quality, efficiency, constraint adherence, and process quality:"
+          - code [ref=e83]:
+            - text: R(τ) = R
+            - subscript [ref=e84]: outcome
+            - text: + R
+            - subscript [ref=e85]: efficiency
+            - text: + R
+            - subscript [ref=e86]: constraints
+            - text: + R
+            - subscript [ref=e87]: process
+          - text: . An insurance agent, for example, might reach the correct decision but still perform poorly if it requested unnecessary documents, violated policy, or communicated an incorrect explanation. The environment must evaluate how success was achieved, not only the final state.
+        - paragraph [ref=e88]: These six components form the substrate of a long-horizon environment. State gives the world persistence, time lets it evolve, events introduce change, actions create consequences, memory gives the agent continuity, and rewards determine which trajectories are worth learning from.
+        - heading "State Architectures" [level=2] [ref=e89]
+        - paragraph [ref=e90]: The important question is not only what state exists, but where it lives and who owns it. A short agent loop can treat the prompt as its working state. An agent that runs for days cannot. As the horizon grows, state moves outward—from the context window into checkpoints, databases, workflow histories, and external systems. The architecture determines whether the agent can resume after failure, coordinate with other actors, and distinguish an old observation from the current world.
+        - generic "The evolution of agent state" [ref=e91]:
+          - generic [ref=e92]: THE EVOLUTION OF AGENT STATE
+          - generic [ref=e93]:
+            - generic [ref=e94]:
+              - generic [ref=e95]: "2022"
+              - generic [ref=e97]:
+                - emphasis [ref=e98]: Reasoning and action
+                - generic [ref=e99]:
+                  - link "ReAct" [ref=e100] [cursor=pointer]:
+                    - /url: https://arxiv.org/abs/2210.03629
+                  - text: "makes the tool loop explicit: the agent alternates between observations, reasoning, and actions."
+            - generic [ref=e101]:
+              - generic [ref=e102]: "2023"
+              - generic [ref=e104]:
+                - emphasis [ref=e105]: Interactive environments
+                - generic [ref=e106]:
+                  - link "WebArena" [ref=e107] [cursor=pointer]:
+                    - /url: https://arxiv.org/abs/2307.13854
+                  - text: moves evaluation beyond answers into realistic websites, persistent data, and multi-step interaction.
+            - generic [ref=e108]:
+              - generic [ref=e109]: "2024"
+              - generic [ref=e111]:
+                - emphasis [ref=e112]: Repository-scale work
+                - generic [ref=e113]:
+                  - link "SWE-bench" [ref=e114] [cursor=pointer]:
+                    - /url: https://github.com/SWE-bench/SWE-bench
+                  - text: grounds agent evaluation in real codebases, issues, tests, patches, and repository state.
+            - generic [ref=e115]:
+              - generic [ref=e116]: "2025"
+              - generic [ref=e118]:
+                - emphasis [ref=e119]: Durable execution
+                - generic [ref=e120]:
+                  - link "Temporal" [ref=e121] [cursor=pointer]:
+                    - /url: https://temporal.io/
+                  - text: represents the shift toward workflows that preserve history, survive failures, wait on humans, and resume later.
+            - generic [ref=e122]:
+              - generic [ref=e123]: "2026"
+              - generic [ref=e125]:
+                - emphasis [ref=e126]: Externalized agent state
+                - generic [ref=e127]:
+                  - link "Modern agent SDKs" [ref=e128] [cursor=pointer]:
+                    - /url: https://openai.com/index/the-next-evolution-of-the-agents-sdk/
+                  - text: connect sandboxes, snapshots, memory, tools, and rehydration into a single long-running harness.
+        - heading "Prompt-local state" [level=3] [ref=e129]
+        - paragraph [ref=e130]: "The simplest architecture keeps state inside the prompt: instructions, conversation history, and recent tool outputs are passed back to the model on every step. This is easy to build and often sufficient for a bounded coding session or a short research question. Its weakness is that the context window carries too much responsibility. If the process crashes, the history is truncated, or the agent returns tomorrow, important state may disappear. Prompt-local state is useful as working memory, but it is a poor source of truth for a long-running environment."
+        - heading "Persistent state" [level=3] [ref=e131]
+        - paragraph [ref=e132]:
+          - text: "Persistent state separates the agent’s temporary execution from the information that must survive. Plans, task status, files, job identifiers, decisions, checkpoints, and permissions can be written to durable storage. The model may stop running while the agent continues to exist conceptually: it can wake, load its state, perform work, checkpoint, sleep, and wake again after an event."
+          - link "Cloudflare Agents" [ref=e133] [cursor=pointer]:
+            - /url: https://developers.cloudflare.com/agents/concepts/agentic-patterns/long-running-agents/
+          - text: are a useful production reference for this pattern, while the updated
+          - link "OpenAI Agents SDK" [ref=e134] [cursor=pointer]:
+            - /url: https://openai.com/index/the-next-evolution-of-the-agents-sdk/
+          - text: describes externalized state, sandbox snapshots, and rehydration for long-running work.
+        - figure [ref=e135]:
+          - img "Diagram showing external systems feeding activities, temporal history, and an agent." [ref=e136]
+        - paragraph [ref=e137]: The design challenge is deciding what must be durable. A full transcript may be unnecessary, while a pending payment, a decision rationale, or the identifier of an external job may be essential. The goal is not to preserve everything. It is to preserve the information needed to reconstruct the agent’s situation and continue safely.
+        - heading "Distributed state" [level=3] [ref=e138]
+        - paragraph [ref=e139]:
+          - text: Production environments rarely have a single
+          - code [ref=e140]: world_state.json
+          - text: . An insurance agent might depend on a claims database, email, document storage, a CRM, a payment system, and several external APIs. The true state is distributed across systems owned by different teams, each with its own latency, permissions, failure modes, and consistency guarantees.
+        - figure [ref=e141]:
+          - img "Diagram showing an agent connected to a claims database, email, document store, CRM, payment system, and external APIs." [ref=e142]
+        - paragraph [ref=e143]:
+          - text: "This introduces classic distributed-systems problems into agent design: stale reads, concurrent writes, duplicate events, retries, partial failures, and eventual consistency."
+          - link "Temporal" [ref=e144] [cursor=pointer]:
+            - /url: https://temporal.io/
+          - text: is a useful reference because it separates durable workflow history from the activities that perform side effects. The workflow can remember what happened and retry safely even when an API or worker disappears. For agents, this is the difference between resuming from a checkpoint and starting the entire task again.
+        - heading "Partially observable state" [level=3] [ref=e145]
+        - paragraph [ref=e146]:
+          - text: In many environments, the agent should not see the complete world state. A cybersecurity investigation, insurance review, negotiation, or scientific experiment may contain hidden facts that must be inferred from evidence. The environment has a true state
+          - code [ref=e147]:
+            - text: S
+            - subscript [ref=e148]: t
+          - text: ", but exposes only an observation"
+          - code [ref=e149]:
+            - text: O
+            - subscript [ref=e150]: t
+            - text: = g(S
+            - subscript [ref=e151]: t
+            - text: )
+          - text: ". The agent then maintains a belief about the world based on its observation history and previous actions:"
+          - code [ref=e152]:
+            - text: B
+            - subscript [ref=e153]: t
+            - text: = P(S
+            - subscript [ref=e154]: t
+            - text: "| O"
+            - subscript [ref=e155]: 1:t
+            - text: ", A"
+            - subscript [ref=e156]: 1:t-1
+            - text: )
+          - text: .
+        - paragraph [ref=e157]: For example, an insurance environment might internally know that a document is fraudulent, but the agent should receive only conflicting timestamps, an invoice, an email, and vehicle telemetry. It must investigate rather than read the answer from a hidden label. This separation between state, observation, and belief makes the benchmark more realistic and creates room to evaluate information gathering, uncertainty, and recovery from an incorrect hypothesis.
+        - heading "Composing the architectures" [level=3] [ref=e158]
+        - paragraph [ref=e159]: These architectures are not mutually exclusive. A serious long-horizon system may use prompt-local state for the current thought, persistent storage for plans and checkpoints, distributed services for the real world, and partial observability to prevent the agent from receiving privileged information. The model reasons over observations, while durable infrastructure owns the state that must survive.
+        - paragraph [ref=e160]: "That is the deeper shift: the architecture of long-horizon agents begins to resemble distributed systems more than chat applications. The model supplies reasoning and action selection, but the surrounding system supplies continuity, synchronization, access control, recovery, and a record of consequences."
+        - heading "Memory for Hours- and Days-Long Tasks" [level=2] [ref=e161]
+        - paragraph [ref=e162]: A long-horizon agent cannot keep every observation, tool result, intermediate plan, and artifact in active context. Over a twelve-hour or three-day trajectory, the history can grow far beyond what should be placed in one prompt. The memory problem is therefore not remembering everything. It is preserving what will matter later, retrieving it at the right moment, and revising information that has become stale.
+        - paragraph [ref=e163]:
+          - text: "The context window is best understood as working memory: the small amount of information the agent is actively reasoning over right now. It may contain the current objective, the immediate plan, recent observations, temporary hypotheses, and the next few actions. If"
+          - code [ref=e164]:
+            - text: M
+            - subscript [ref=e165]: t
+          - text: is everything the agent could potentially remember, then its working memory is only a selected subset,
+          - code [ref=e166]:
+            - text: W
+            - subscript [ref=e167]: t
+            - text: ⊂ M
+            - subscript [ref=e168]: t
+          - text: . The context window should contain what the agent needs now, not everything that has ever happened.
+        - figure [ref=e169]:
+          - img "Diagram showing working memory connected to long-term episodic, semantic, and artifact memory, with compression into an archive or log." [ref=e170]
+        - heading "Episodic, semantic, and artifact memory" [level=3] [ref=e171]
+        - paragraph [ref=e172]:
+          - text: "Episodic memory records what happened: a request was sent, a customer replied, an experiment failed, or a task was escalated. A useful event can be represented as"
+          - code [ref=e173]:
+            - text: e
+            - subscript [ref=e174]: i
+            - text: = (time, action, observation, outcome)
+          - text: . This lets an agent later ask why it made a decision, whether it already tried a strategy, or what happened after an earlier action.
+        - paragraph [ref=e175]:
+          - text: Semantic memory stores what the agent learned rather than the complete path that produced it. “At 14:05, the customer confirmed the vehicle was repaired in London” is episodic; “vehicle repair location = London” is semantic. Facts, policies, relationships, preferences, discovered constraints, and conclusions belong here. In systems such as
+          - link "Mem0" [ref=e176] [cursor=pointer]:
+            - /url: https://mem0.ai/
+          - text: ", persistent memories are separated from the active context and retrieved when they become relevant. Benchmarks such as"
+          - link "LongMemEval" [ref=e177] [cursor=pointer]:
+            - /url: https://arxiv.org/abs/2410.10813
+          - text: make this retrieval problem measurable across long, multi-session histories.
+        - paragraph [ref=e178]:
+          - text: Artifact memory is different again. Long-running agents create code, reports, spreadsheets, patches, diagrams, experiment outputs, and research notes. These should not all be copied into the prompt. Instead, the agent can store a pointer and metadata such as
+          - code [ref=e179]: artifact_id
+          - text: ","
+          - code [ref=e180]: location
+          - text: ","
+          - code [ref=e181]: purpose
+          - text: ", and"
+          - code [ref=e182]: status
+          - text: . Long-horizon memory is partly about remembering information and partly about remembering where important information lives.
+        - heading "Compression and retrieval" [level=3] [ref=e183]
+        - paragraph [ref=e184]: "The naive architecture sends the entire history into the context window. A scalable architecture continuously writes important information to long-term memory and retrieves only what is relevant to the current decision:"
+        - code [ref=e186]: raw history → episodes → facts and artifacts → retrieved working context
+        - paragraph [ref=e187]:
+          - text: The two fundamental operations are
+          - code [ref=e188]:
+            - text: write(M
+            - subscript [ref=e189]: t
+            - text: ", x"
+            - subscript [ref=e190]: t
+            - text: )
+          - text: and
+          - code [ref=e191]:
+            - text: retrieve(M
+            - subscript [ref=e192]: t
+            - text: ", q"
+            - subscript [ref=e193]: t
+            - text: )
+          - text: . The difficult part is deciding what deserves to be written, what should be compressed, and what must be retrieved now. A memory layer may use a service such as
+          - link "Redis" [ref=e194] [cursor=pointer]:
+            - /url: https://redis.io/solutions/ai/
+          - text: ", Mem0, a database, or a combination of stores. The important architectural idea is not the vendor: memory becomes an active process of selection, compression, retrieval, update, and forgetting rather than a passive transcript."
+        - paragraph [ref=e195]: For long-horizon agents, forgetting is as important as remembering. A useful memory system must decide what survives, what becomes stale, what should be updated when evidence conflicts, and what belongs only in the archive. The goal is not perfect recall. It is maintaining the smallest reliable representation of the past needed to make good decisions about the future.
+        - heading "Tool and Action Architectures" [level=2] [ref=e196]
+        - paragraph [ref=e197]: The tool interface determines what kind of agent is actually being trained. An API agent, a browser agent, and a desktop agent may be asked to solve the same business problem, but they operate in very different environments. The interface changes the difficulty, the kinds of errors that are possible, and what it means for an action to change the world.
+        - figure [ref=e198]:
+          - img "Diagram showing an agent routing actions through APIs, computer use, and a terminal into a sandboxed world, producing state changes and rewards." [ref=e199]
+        - heading "APIs, computer use, and sandboxes" [level=3] [ref=e200]
+        - paragraph [ref=e201]:
+          - text: APIs are the cleanest action interface. A tool such as
+          - code [ref=e202]: get_claim(id)
+          - text: ","
+          - code [ref=e203]: update_claim(id, status)
+          - text: ", or"
+          - code [ref=e204]: send_email(to, body)
+          - text: exposes a system’s capabilities directly. Calls are easy to validate, replay, and score, which makes them useful for reinforcement learning.
+          - link "τ-bench" [ref=e205] [cursor=pointer]:
+            - /url: https://github.com/sierra-research/tau-bench
+          - text: "is a useful example: agents interact with tools and simulated users while following policies in customer-service workflows."
+        - paragraph [ref=e206]:
+          - text: Computer-use environments remove that abstraction. Instead of calling a perfect function, the agent receives screenshots and acts through mouse movement, clicks, typing, scrolling, and keyboard shortcuts. It must decide both what to do and how to physically accomplish it.
+          - link "OpenAI’s Computer-Using Agent" [ref=e207] [cursor=pointer]:
+            - /url: https://openai.com/index/computer-using-agent/
+          - text: ","
+          - link "WebArena" [ref=e208] [cursor=pointer]:
+            - /url: https://webarena.dev/
+          - text: ", and"
+          - link "OSWorld" [ref=e209] [cursor=pointer]:
+            - /url: https://os-world.github.io/
+          - text: show why interface navigation introduces many more opportunities for error than a structured API.
+        - code [ref=e211]: "API agent calls: update_customer(123) COMPUTER USE agent must: open CRM → find customer → navigate tabs → edit field → save → verify"
+        - paragraph [ref=e212]:
+          - text: "Researchers therefore increasingly use sandboxed copies of applications and systems: websites, Linux terminals, repositories, databases, desktop apps, and simulated enterprise software."
+          - link "Harbor" [ref=e213] [cursor=pointer]:
+            - /url: https://www.harborframework.com/docs/core-concepts
+          - text: "is especially relevant because it treats a task as an instruction, an isolated environment, and a verifier. A sandbox turns software into a trainable world: it makes exploration safer, supports parallel rollouts, and allows the environment to be reset to the same initial state."
+        - paragraph [ref=e214]:
+          - text: "That reset is essential for RL. After each rollout, the system should be able to restore the world and run another agent from the same starting point:"
+          - code [ref=e215]:
+            - text: reset(S
+            - subscript [ref=e216]: t
+            - text: ) → S
+            - subscript [ref=e217]: "0"
+          - text: . This gives researchers reproducibility, controlled failures, hidden state, and deterministic verification without requiring agents to operate on live production systems.
+        - heading "Hybrid environments" [level=3] [ref=e218]
+        - paragraph [ref=e219]: Long-horizon agents will rarely use one interface exclusively. An agent might use an API to retrieve thousands of customer records, a browser to inspect a legacy system with no API, and a terminal to analyze the result inside a sandbox. A software engineer may move through GitHub, a terminal, an IDE, a browser, and Slack during one task. The strongest environments will let the agent choose not only what action to take, but which interface is appropriate for taking it.
+        - heading "Irreversible actions" [level=3] [ref=e220]
+        - paragraph [ref=e221]:
+          - text: "Long-horizon work also contains actions that modify the future: sending an email, approving a payment, merging a pull request, deleting a database row, rejecting a claim, or deploying production code. We can represent an action as"
+          - code [ref=e222]:
+            - text: A
+            - subscript [ref=e223]: t
+            - text: ": S"
+            - subscript [ref=e224]: t
+            - text: → S
+            - subscript [ref=e225]: t+1
+          - text: ", but some transitions cannot be cheaply undone:"
+          - code [ref=e226]:
+            - text: A
+            - subscript [ref=e227]: t
+            - superscript [ref=e228]: −1
+            - text: (S
+            - subscript [ref=e229]: t+1
+            - text: ) ≉ S
+            - subscript [ref=e230]: t
+          - text: .
+        - paragraph [ref=e231]:
+          - text: This creates genuine planning pressure. Inside an episode, the action should have consequences that later decisions must respect. Outside the episode, the simulator should still be resettable for the next rollout. For example, approving a payment can set a claim to
+          - code [ref=e232]: PAID
+          - text: ", reduce a balance, notify a customer, and create an audit event; the entire simulated world can then be restored for another training run."
+        - heading "Existing environments" [level=3] [ref=e233]
+        - table [ref=e234]:
+          - rowgroup [ref=e235]:
+            - row [ref=e236]:
+              - columnheader "Environment" [ref=e237]
+              - columnheader "Interface" [ref=e238]
+              - columnheader "What it tests" [ref=e239]
+          - rowgroup [ref=e240]:
+            - row [ref=e241]:
+              - cell [ref=e242]:
+                - link "τ-bench" [ref=e243] [cursor=pointer]:
+                  - /url: https://github.com/sierra-research/tau-bench
+              - cell "APIs and simulated users" [ref=e244]
+              - cell "Tool use, policies, and dialogue" [ref=e245]
+            - row [ref=e246]:
+              - cell [ref=e247]:
+                - link "WebArena" [ref=e248] [cursor=pointer]:
+                  - /url: https://webarena.dev/
+              - cell "Browser" [ref=e249]
+              - cell "Multi-step web tasks" [ref=e250]
+            - row [ref=e251]:
+              - cell [ref=e252]:
+                - link "OSWorld" [ref=e253] [cursor=pointer]:
+                  - /url: https://os-world.github.io/
+              - cell "Computer use" [ref=e254]
+              - cell "Desktop workflows" [ref=e255]
+            - row [ref=e256]:
+              - cell [ref=e257]:
+                - link "Terminal-Bench" [ref=e258] [cursor=pointer]:
+                  - /url: https://www.tbench.ai/
+              - cell "Terminal" [ref=e259]
+              - cell "Shell and systems tasks" [ref=e260]
+            - row [ref=e261]:
+              - cell [ref=e262]:
+                - link "SWE-bench" [ref=e263] [cursor=pointer]:
+                  - /url: https://www.swebench.com/
+              - cell "Code and repository" [ref=e264]
+              - cell "Software engineering" [ref=e265]
+            - row [ref=e266]:
+              - cell [ref=e267]:
+                - link "Harbor" [ref=e268] [cursor=pointer]:
+                  - /url: https://github.com/harbor-framework/harbor
+              - cell "Environment framework" [ref=e269]
+              - cell "Building, evaluating, and training across interfaces" [ref=e270]
+        - paragraph [ref=e271]: The key idea is that the action space itself is part of environment design. Long-horizon agents should not be trained only to call tools. They should learn to operate interfaces, choose between interfaces, understand which actions change persistent state, and recognize when an action cannot safely be undone. The environment is not just a collection of capabilities; it is a controlled world in which actions carry consequences.
+        - heading "Reward and Credit Assignment Across Long Horizons" [level=2] [ref=e272]
+        - paragraph [ref=e273]:
+          - text: "Long-horizon reinforcement learning creates a basic problem: the action that determines success may occur hours before the reward arrives. A trajectory can contain thousands of decisions,"
+          - code [ref=e274]:
+            - text: τ = (s
+            - subscript [ref=e275]: "0"
+            - text: ", a"
+            - subscript [ref=e276]: "0"
+            - text: ", s"
+            - subscript [ref=e277]: "1"
+            - text: ", a"
+            - subscript [ref=e278]: "1"
+            - text: ", …, s"
+            - subscript [ref=e279]: T
+            - text: )
+          - text: ", while the environment produces only one final signal. The agent must determine which earlier actions caused that outcome."
+        - heading "Sparse final rewards" [level=3] [ref=e280]
+        - paragraph [ref=e281]:
+          - text: "The cleanest reward is often the final outcome. An insurance agent might investigate a claim for twelve hours before reaching a decision, after which an external verifier checks whether the decision was correct. When the outcome is objectively verifiable, I generally prefer a binary primary reward:"
+          - code [ref=e282]: R = 1
+          - text: for success and
+          - code [ref=e283]: R = 0
+          - text: for failure.
+        - paragraph [ref=e284]:
+          - text: Binary rewards reduce the number of arbitrary preferences encoded into the environment. Instead of deciding that opening a document is worth
+          - code [ref=e285]: "+0.1"
+          - text: ", sending an email is worth"
+          - code [ref=e286]: "+0.3"
+          - text: ", and finishing quickly is worth"
+          - code [ref=e287]: "+0.5"
+          - text: ", the environment asks the harder and more meaningful question: did the agent actually accomplish the task?"
+        - paragraph [ref=e288]: Binary does not mean unhackable. If the success verifier has a loophole, the model can still optimize that loophole. The simplicity of the reward only helps when the verifier measures the outcome we actually care about.
+        - heading "Intermediate rewards and process supervision" [level=3] [ref=e289]
+        - paragraph [ref=e290]: Sparse rewards make credit assignment difficult. If a 500-action task fails at the end, the agent learns that the trajectory was bad but not whether the important mistake happened at step 12, 180, or 497. Intermediate signals can make learning easier, but every signal becomes a new proxy that the policy may optimize in unintended ways.
+        - code [ref=e292]: requested correct evidence +0.1 identified a contradiction +0.2 followed authorization policy +0.1 correct final decision +1.0
+        - paragraph [ref=e293]: "An agent rewarded for requesting evidence may request unnecessary evidence. An agent rewarded for resolving cases quickly may prematurely close difficult cases. An agent rewarded for passing tests may learn to manipulate the tests. This creates a central tension: denser feedback can improve credit assignment while increasing the reward’s attack surface."
+        - paragraph [ref=e294]:
+          - text: "Process supervision is a more careful alternative. Rather than rewarding every click or tool call, an evaluator can check whether important parts of the trajectory were correct: did the agent identify the relevant policy, collect the required evidence, respect authorization boundaries, and use the available evidence before making its final decision? Two agents can reach the same answer while taking very different paths—one investigating correctly and the other guessing—so a useful evaluator should distinguish"
+          - code [ref=e295]:
+            - text: R
+            - subscript [ref=e296]: outcome
+          - text: from
+          - code [ref=e297]:
+            - text: R
+            - subscript [ref=e298]: process
+          - text: .
+        - heading "Delayed consequences" [level=3] [ref=e299]
+        - paragraph [ref=e300]: Long-horizon environments become especially interesting when an action’s consequences are not immediately visible. An agent may approve an unusual exception in the first hour, a customer may proceed based on that approval several hours later, and a compliance system may flag the case only near the end of the task. The first action looked locally reasonable; its cost appeared thirteen hours later.
+        - paragraph [ref=e301]: "The environment therefore needs to preserve causal information across time. Otherwise, training sees only a bad ending without enough structure to identify which earlier decision created it. This is the practical form of long-horizon credit assignment: connecting a delayed outcome to the actions, observations, and state transitions that produced it."
+        - heading "Reward hacking" [level=3] [ref=e302]
+        - paragraph [ref=e303]: Reward hacking occurs when an agent increases the measured reward without accomplishing what the environment designer intended. A coding agent told to make the tests pass might fix the implementation—or disable the test. The measured result is the same, but the underlying outcome is completely different.
+        - paragraph [ref=e304]:
+          - text: This risk grows with capability. The same ability that helps an agent solve difficult tasks can help it discover weaknesses in the evaluator. In shorthand,
+          - code [ref=e305]:
+            - text: R
+            - subscript [ref=e306]: proxy
+            - text: ↑
+          - text: while
+          - code [ref=e307]:
+            - text: R
+            - subscript [ref=e308]: "true"
+            - text: ↓
+          - text: . Stronger verifiers reduce this gap, but they cannot eliminate it when the specification itself is incomplete.
+        - heading "Why binary rewards are useful" [level=3] [ref=e309]
+        - paragraph [ref=e310]: For long-horizon environments, my default is to keep the primary reward as close to binary and externally verifiable as possible. Richer signals can still be useful for diagnostics, curriculum construction, and carefully designed auxiliary objectives, but blindly combining many subjective scores creates more places where optimization can diverge from intent.
+        - paragraph [ref=e311]:
+          - text: The goal is not simply to make the reward binary. It is to make success binary when possible and make the verifier difficult to game. That means testing the verifier itself with hidden state, adversarial cases, held-out checks, independent evaluators, and sometimes multiple forms of verification. The
+          - link "reward hacking discussion" [ref=e312] [cursor=pointer]:
+            - /url: https://www.youtube.com/watch?v=lvMMZLYoDr4
+          - text: is a useful reminder of this failure mode before designing the reward rather than after training exposes it.
+        - paragraph [ref=e313]: For long-horizon RL, the hardest problem may eventually be less about producing reward and more about ensuring that the reward still means what we think it means after an agent has had thousands of opportunities to optimize against it.
+        - heading "How to Build a 12-Hour Environment" [level=2] [ref=e314]
+        - paragraph [ref=e315]:
+          - text: "A twelve-hour environment should not be implemented as one process that stays alive for twelve hours. Most of the time, the agent will be waiting: for a CI job, a user reply, an experiment, an approval, or an external event. A more robust architecture is a durable environment that can"
+          - strong [ref=e316]: wake, act, checkpoint, sleep, and resume
+          - text: .
+        - figure [ref=e317]:
+          - img "Diagram showing an agent connected to an environment server with tool interfaces, a state store, and an event scheduler feeding a persistent world, checkpoints, external events, trajectories, and evaluators." [ref=e318]
+        - heading "Environment server" [level=3] [ref=e319]
+        - paragraph [ref=e320]:
+          - text: The environment server owns the episode lifecycle. It should expose operations such as
+          - code [ref=e321]: reset()
+          - text: ","
+          - code [ref=e322]: observe()
+          - text: ","
+          - code [ref=e323]: act()
+          - text: ","
+          - code [ref=e324]: advance_time()
+          - text: ","
+          - code [ref=e325]: checkpoint()
+          - text: ","
+          - code [ref=e326]: restore()
+          - text: ", and"
+          - code [ref=e327]: evaluate()
+          - text: . The server—not the model—decides what state exists, what the agent is allowed to observe, which tools are available, what events are pending, whether the episode has finished, and when evaluation runs.
+        - paragraph [ref=e328]:
+          - text: This separation also makes the environment reproducible. The same initial state should be able to generate another rollout from the same checkpoint. Frameworks such as
+          - link "Harbor" [ref=e329] [cursor=pointer]:
+            - /url: https://www.harborframework.com/docs/core-concepts
+          - text: use this kind of separation between an agent and an isolated environment, allowing the same world to support evaluation, RL rollouts, and trajectory generation.
+        - heading "State store" [level=3] [ref=e330]
+        - paragraph [ref=e331]:
+          - text: Anything that matters after a restart must live outside transient model execution. A twelve-hour coding task may need to persist an episode identifier, repository commit, open pull request, current plan, pending CI job, received messages, created artifacts, remaining budget, and completed actions. You do not need to save every Python variable; you need enough information to reconstruct
+          - code [ref=e332]:
+            - text: S
+            - subscript [ref=e333]: t
+          - text: after a crash or sleep period.
+        - paragraph [ref=e334]:
+          - text: "The rule is simple: if losing it would change what the agent should do next, persist it. This is the same design pressure behind durable state in production agent runtimes such as"
+          - link "Cloudflare Agents" [ref=e335] [cursor=pointer]:
+            - /url: https://developers.cloudflare.com/agents/concepts/durable-objects/
+          - text: ", where state survives restarts and hibernation."
+        - heading "Event scheduler" [level=3] [ref=e336]
+        - paragraph [ref=e337]: "A twelve-hour environment needs an actual concept of future time. The scheduler might create events such as a CI job completing in ten minutes, a customer replying in forty-five minutes, a document arriving in two hours, or an approval window closing in ten hours. The world is therefore not only updated by the agent:"
+        - code [ref=e339]:
+          - text: S
+          - subscript [ref=e340]: t+1
+          - text: = f(S
+          - subscript [ref=e341]: t
+          - text: ", A"
+          - subscript [ref=e342]: t
+          - text: ", E"
+          - subscript [ref=e343]: t
+          - text: )
+        - paragraph [ref=e344]:
+          - text: Here,
+          - code [ref=e345]:
+            - text: E
+            - subscript [ref=e346]: t
+          - text: "represents events that can occur independently of the agent. For training, time can be accelerated: a real three-hour wait may become three simulated minutes while preserving the ordering and consequences of events."
+        - heading "Tool interfaces and checkpointing" [level=3] [ref=e347]
+        - paragraph [ref=e348]: A strong twelve-hour environment should mix APIs, computer use, terminals, filesystems, databases, and messaging while keeping them connected to the same underlying state. If the agent sends an email, the inbox should change. If it edits a repository, later tests should use the new code. If it approves something, another actor should be able to observe that decision. The tools should not become isolated mini-games; they should be different interfaces to one persistent world.
+        - paragraph [ref=e349]: Checkpointing makes the environment survivable. A checkpoint might store the current world time, state version, goal, plan step, pending job, artifacts, and memory snapshot. If execution disappears, the system can reload the checkpoint, reconstruct the working context, and continue from the same step rather than replaying six hours of conversation.
+        - code [ref=e351]: crash ↓ reload checkpoint ↓ reconstruct context ↓ continue safely
+        - paragraph [ref=e352]: Recovery should be a normal state transition, not an exceptional failure. The model can crash, change, lose its context, or go offline; the environment should still know what happened, what time it is, which events are pending, which actions occurred, what artifacts exist, and where the agent should resume.
+        - heading "Evaluators" [level=3] [ref=e353]
+        - paragraph [ref=e354]: Finally, the environment needs evaluators that inspect both the trajectory and the final world state. A primary verifier might check that tests pass, required functionality works, credentials were not exposed, the repository was not corrupted, and the task objective was satisfied. Diagnostic metrics—tool calls, tokens consumed, elapsed world time, retries, policy violations, human interventions, and recovery events—can be recorded separately rather than all being placed inside the reward.
+        - paragraph [ref=e355]:
+          - text: The complete design is less like
+          - code [ref=e356]: LLM runs for 12 hours
+          - text: and more like
+          - code [ref=e357]: wake → observe → reason → act → persist → wait → event → wake → recover → continue
+          - text: . The environment lasts twelve hours. The model does not have to.
+        - heading "Training on Long-Horizon Environments" [level=2] [ref=e358]
+        - paragraph [ref=e359]: Building a twelve-hour environment is only half the problem. The harder question is how to train a model inside it. A short reasoning task may generate a few hundred tokens before receiving a reward; a long-horizon agent may generate thousands of tool calls, observations, plans, artifacts, retries, and decisions before the final outcome is known.
+        - paragraph [ref=e360]: "Training is therefore better understood as a pipeline than as one enormous RL run:"
+        - code [ref=e362]: good trajectories → SFT → short-horizon RL → curriculum → longer rollouts → offline reuse → long-horizon RL
+        - paragraph [ref=e363]: The practical goal is to first teach the model what competent behavior looks like, then let reinforcement learning improve how it behaves when it reaches states that demonstrations did not cover.
+        - heading "SFT from trajectories" [level=3] [ref=e364]
+        - paragraph [ref=e365]: "Supervised fine-tuning is a useful place to start. A successful long-horizon trajectory should not be treated as one enormous input-output pair. It can be decomposed into many state-action examples. If an expert reads a policy, requests evidence, waits for a reply, identifies a contradiction, and makes a final decision, every transition can become training data:"
+        - code [ref=e367]:
+          - text: (S
+          - subscript [ref=e368]: t
+          - text: ", O"
+          - subscript [ref=e369]: t
+          - text: ", M"
+          - subscript [ref=e370]: t
+          - text: ) → A
+          - subscript [ref=e371]: t
+        - paragraph [ref=e372]:
+          - code [ref=e373]:
+            - text: S
+            - subscript [ref=e374]: t
+          - text: is relevant environment state,
+          - code [ref=e375]:
+            - text: O
+            - subscript [ref=e376]: t
+          - text: is what the agent observed,
+          - code [ref=e377]:
+            - text: M
+            - subscript [ref=e378]: t
+          - text: is reconstructed memory or task context, and
+          - code [ref=e379]:
+            - text: A
+            - subscript [ref=e380]: t
+          - text: is the expert action. A successful long trajectory can therefore be decomposed into thousands of supervised decisions.
+          - link "Thinking Machines’ Tinker" [ref=e381] [cursor=pointer]:
+            - /url: https://thinkingmachines.ai/tinker/
+          - text: is one example of a programmable interface for SFT and RL workflows.
+        - generic [ref=e382]:
+          - code [ref=e383]: "{ \"episode_id\": \"claim-18492\", \"world_time\": \"06:42:18\", \"observation\": { \"claim_status\": \"investigating\", \"new_email\": true, \"pending_documents\": [\"repair_invoice\"] }, \"memory\": {\"goal\": \"determine coverage\"}, \"expert_action\": { \"tool\": \"open_document\", \"arguments\": {\"document\": \"repair_invoice\"} } }"
+          - button "Copy code" [ref=e384] [cursor=pointer]
+        - heading "Where trajectories come from" [level=3] [ref=e385]
+        - paragraph [ref=e386]: "Trajectory data can come from human experts, strong frontier models, production traces, search systems, planning systems, or successful RL rollouts. A teacher can run inside the environment, after which the verifier filters the results:"
+        - code [ref=e388]: teacher → environment → successful trajectories → SFT → better agent
+        - paragraph [ref=e389]:
+          - text: This creates a flywheel. The agent improves the trajectory dataset, and the improved dataset produces a stronger agent.
+          - link "Prime Intellect" [ref=e390] [cursor=pointer]:
+            - /url: https://www.primeintellect.ai/
+          - text: is relevant because its Verifiers ecosystem combines datasets, harnesses, tools, sandboxes, and reward functions for evaluation, synthetic data generation, and RL training.
+        - heading "Reinforcement learning" [level=3] [ref=e391]
+        - paragraph [ref=e392]: "SFT teaches the model to imitate trajectories that already exist. RL is useful when we want it to discover better trajectories:"
+        - code [ref=e394]: policy → rollout → environment → trajectory → verifier → reward → policy update → repeat
+        - paragraph [ref=e395]: "The difficulty is hidden inside the rollout. In a twelve-hour environment it may involve thousands of actions, asynchronous events, memory compression, checkpoints, external tools, failures, resets, and delayed rewards. Scaling long-horizon RL is therefore partly a systems problem: the trainer must coordinate the policy, environment server, trajectory store, verifier, and recovery logic."
+        - heading "Offline and off-policy reuse" [level=3] [ref=e396]
+        - paragraph [ref=e397]: Long trajectories are expensive. If an episode consumes twelve hours of simulated work, throwing it away after one update is wasteful. Offline learning lets the trainer reuse a fixed dataset, including failures. An agent may perform well for six hours before making one catastrophic decision; the partial success and failure point are both useful.
+        - generic [ref=e398]:
+          - code [ref=e399]: "{ \"trajectory_id\": \"episode-8821\", \"policy_version\": \"v17\", \"final_reward\": 0, \"steps\": 784, \"failure\": {\"step\": 623, \"type\": \"premature_commitment\"}, \"checkpoint_rewards\": [[100, 1], [300, 1], [600, 1], [623, 0]] }"
+          - button "Copy code" [ref=e400] [cursor=pointer]
+        - paragraph [ref=e401]: These trajectories can support SFT on successful subsequences, preference learning, value-function training, failure classification, critic training, reranking, distillation, and counterfactual analysis. A twelve-hour rollout should be treated more like a dataset than a disposable sample.
+        - paragraph [ref=e402]:
+          - text: Offline and off-policy learning are related but not identical. Offline learning uses a fixed dataset. Off-policy learning trains the current policy using trajectories generated by another policy,
+          - code [ref=e403]:
+            - text: τ ~ π
+            - subscript [ref=e404]: old
+          - text: ", while optimizing"
+          - code [ref=e405]:
+            - text: π
+            - subscript [ref=e406]: new
+          - text: . This matters when rollout generation is slow and a useful trajectory is several policy versions old.
+        - heading "On-policy distillation" [level=3] [ref=e407]
+        - paragraph [ref=e408]: On-policy distillation offers a useful middle ground. SFT provides dense supervision but is off-policy; RL is on-policy but often has only a sparse final reward. With on-policy distillation, the student visits its own states and mistakes while a stronger teacher provides a denser signal on those same trajectories.
+        - code [ref=e410]: SFT RL teacher trajectory student trajectory → student imitates → final reward dense, off-policy on-policy, sparse ON-POLICY DISTILLATION student trajectory → teacher evaluates student states → dense, on-policy supervision
+        - paragraph [ref=e411]: This is especially interesting for long-horizon agents because the teacher can provide information about where a student trajectory went wrong without requiring a reward for every token or tool call.
+        - heading "Curriculum by horizon length" [level=3] [ref=e412]
+        - paragraph [ref=e413]: Do not begin with twelve hours. Start with five minutes, then fifteen minutes, one hour, three hours, six hours, and finally twelve hours—or increase the action horizon from 10 to 50, 200, 500, and 1,000 or more steps. The model first learns the local rules of the world; then we increase the time for which it must remain coherent.
+        - generic [ref=e414]:
+          - code [ref=e415]: "curriculum = [20, 50, 150, 500, 1500] for max_steps in curriculum: env.set_max_steps(max_steps) while not ready_to_advance(policy, env): trajectories = collect_rollouts(policy, env) policy = rl_update(policy, trajectories)"
+          - button "Copy Python" [ref=e416] [cursor=pointer]
+        - paragraph [ref=e417]:
+          - text: An adaptive curriculum can promote the model when evaluation success passes a threshold, such as
+          - code [ref=e418]: "if eval_success_rate > 0.80: horizon *= 2"
+          - text: . Short horizons teach mechanics, medium horizons teach planning, long horizons teach persistence, and very long horizons expose delayed consequences.
+        - heading "Hierarchical credit assignment" [level=3] [ref=e419]
+        - paragraph [ref=e420]:
+          - text: "At very long horizons, one reward attached to the entire episode is often not enough to explain what happened. A twelve-hour task naturally contains a hierarchy: verify coverage, collect evidence, investigate inconsistencies, communicate with the claimant, and produce a final decision. Instead of treating the trajectory only as"
+          - code [ref=e421]:
+            - text: (a
+            - subscript [ref=e422]: "1"
+            - text: ", a"
+            - subscript [ref=e423]: "2"
+            - text: ", …, a"
+            - subscript [ref=e424]: "1000"
+            - text: )
+          - text: ", segment it into meaningful subtrajectories"
+          - code [ref=e425]:
+            - text: τ = (τ
+            - subscript [ref=e426]: "1"
+            - text: ", τ"
+            - subscript [ref=e427]: "2"
+            - text: ", …, τ"
+            - subscript [ref=e428]: k
+            - text: )
+          - text: .
+        - paragraph [ref=e429]:
+          - text: "This lets the trainer ask which subtask caused the failure before asking which individual token caused it. A coding trajectory might be segmented into understanding the issue, locating the bug, designing a patch, implementing it, running tests, repairing failures, and submitting. A hierarchical return can combine final and subtask outcomes:"
+          - code [ref=e430]:
+            - text: R(τ) = R
+            - subscript [ref=e431]: final
+            - text: + Σ
+            - subscript [ref=e432]: i
+            - text: λ
+            - subscript [ref=e433]: i
+            - text: R
+            - subscript [ref=e434]: subtask,i
+          - text: .
+        - paragraph [ref=e435]: Intermediate rewards should correspond to meaningful, independently verifiable state changes rather than arbitrary signals such as “used the right tool.” Otherwise, hierarchy creates more surfaces for reward hacking instead of making failure interpretable.
+        - heading "A practical training stack" [level=3] [ref=e436]
+        - paragraph [ref=e437]: "Putting the pieces together, a practical long-horizon training setup might look like:"
+        - code [ref=e439]: environment platform → parallel trajectories → trajectory store → SFT + offline learning → on-policy RL / distillation → curriculum increases horizon → new trajectories → repeat
+        - paragraph [ref=e440]: The environment platform supplies states, sandboxes, tools, and verifiers. A training system supplies SFT, RL, distillation, optimizer steps, and checkpointing. Prime Intellect is most relevant when the environment itself is central to the experiment, while Tinker represents a programmable training layer where the researcher provides the data, environment, loss, and loop.
+        - paragraph [ref=e441]:
+          - text: "The central insight is that training on long-horizon environments should be a continual improvement loop:"
+          - code [ref=e442]: collect → filter → imitate → explore → evaluate → increase horizon → repeat
+          - text: . SFT teaches the shape of successful work. RL teaches recovery when the agent leaves that distribution. Offline methods make expensive trajectories reusable. Curriculum makes exploration tractable. Hierarchical credit assignment makes failure interpretable.
+        - paragraph [ref=e443]:
+          - text: For long-horizon agents, the scarce resource may eventually be less the gradient update itself and more the
+          - strong [ref=e444]: high-quality trajectory through a consequential world
+          - text: .
+        - heading "Evaluating Long-Horizon Agents" [level=2] [ref=e445]
+        - paragraph [ref=e446]: "Training reward tells us whether a policy is improving. Evaluation asks a harder question: does the trained agent actually behave better across complete long-horizon trajectories it has not seen before?"
+        - paragraph [ref=e447]: For a twelve-hour agent, final accuracy alone is not enough. Two agents can reach the same outcome while one wastes compute, repeats work, violates constraints, or succeeds only after recovering from several serious mistakes.
+        - heading "Task success" [level=3] [ref=e448]
+        - paragraph [ref=e449]:
+          - text: "Start with the clearest signal:"
+          - code [ref=e450]: "Success ∈ {0, 1}"
+          - text: . Did the agent actually complete the task? For coding, this might mean hidden tests pass. For an insurance workflow, the final decision and required state transitions must be correct. Wherever possible, this evaluator should be objective and externally verifiable.
+        - heading "Trajectory quality" [level=3] [ref=e451]
+        - paragraph [ref=e452]:
+          - text: Then inspect how the agent got there. A trajectory evaluator can look for unnecessary loops, repeated actions, poor information gathering, premature commitments, bad intermediate decisions, or actions that happened to work despite weak reasoning. The object being evaluated is therefore the complete trajectory,
+          - code [ref=e453]:
+            - text: τ = (s
+            - subscript [ref=e454]: "0"
+            - text: ", a"
+            - subscript [ref=e455]: "0"
+            - text: ", …, s"
+            - subscript [ref=e456]: T
+            - text: )
+          - text: ", not merely the final answer."
+        - heading "Efficiency and recovery" [level=3] [ref=e457]
+        - paragraph [ref=e458]: "Long-horizon environments should record the cost of success: tool calls, tokens, world time, compute, retries, and unnecessary actions. Recovery is especially important. If the environment changes unexpectedly or an early decision fails, can the agent recognize the failure, update its plan, and continue?"
+        - paragraph [ref=e459]:
+          - text: A useful agent is not one that never fails. It is one that can
+          - strong [ref=e460]: fail without losing the entire trajectory
+          - text: .
+        - heading "Constraint adherence and delayed consequences" [level=3] [ref=e461]
+        - paragraph [ref=e462]: Some failures should invalidate an otherwise successful trajectory. An agent might solve a coding task while exposing credentials, approve the correct claim while violating procedure, or finish quickly by taking an unauthorized shortcut.
+        - paragraph [ref=e463]:
+          - text: "Some consequences appear only later. Evaluation should be able to advance the environment after the apparent completion point and check whether earlier actions created delayed failures:"
+          - code [ref=e464]:
+            - text: action
+            - subscript [ref=e465]: t
+            - text: → consequence
+            - subscript [ref=e466]: t+k
+          - text: . A policy that leaves the world in a dangerous state should not receive full credit merely because the immediate task appeared complete.
+        - heading "Evaluating after training with Prime Intellect" [level=3] [ref=e467]
+        - paragraph [ref=e468]:
+          - link "Prime Intellect" [ref=e469] [cursor=pointer]:
+            - /url: https://www.primeintellect.ai/
+          - text: provides a useful implementation of this loop. Its
+          - link "Verifiers" [ref=e470] [cursor=pointer]:
+            - /url: https://github.com/PrimeIntellect-ai/verifiers
+          - text: framework defines tasksets, tools, harnesses, runtimes, and scoring rubrics, so the same environment can be used during training and evaluation.
+        - paragraph [ref=e471]: After training a policy, it can be run through held-out environments in parallel. In this setup, the platform handles inference, sandboxes, rollout execution, and result collection, while the environment evaluator or rubric determines performance.
+        - paragraph [ref=e472]: This makes the train → evaluate → inspect → retrain loop part of the same stack. For long-horizon agents, the final question should not simply be, “Did it finish?”
+        - heading "What Should We Build Next?" [level=2] [ref=e473]
+        - paragraph [ref=e474]: The most interesting long-horizon environments are not short tasks artificially stretched to make them harder. They are domains where the real work already unfolds over hours, days, weeks, or months. These environments naturally contain waiting, external events, changing state, multiple actors, delayed consequences, and decisions that cannot always be reversed.
+        - heading "Insurance" [level=3] [ref=e475]
+        - paragraph [ref=e476]: "Insurance is one of the clearest places to start. A claim is a persistent process: an adjuster collects evidence, reads policies, contacts the claimant, waits for documents, handles inconsistencies, updates reserves, checks coverage, and eventually decides whether and how much to pay."
+        - paragraph [ref=e477]: An insurance agent could remain attached to a claim throughout its lifecycle. It might work for twenty minutes, wait six hours for a document, wake when the document arrives, update its understanding, request more evidence, and eventually make a consequential decision. That is a genuine long-horizon environment.
+        - paragraph [ref=e478]:
+          - link "Guidewire" [ref=e479] [cursor=pointer]:
+            - /url: https://www.guidewire.com/
+          - text: is already moving toward agentic infrastructure across policy, claims, and billing systems. The deeper research opportunity is not simply making claims faster; it is evaluating whether an agent can maintain a correct belief for several days, handle contradictory evidence, respect authorization constraints, communicate appropriately, recover from mistakes, and understand the financial consequences of its decisions.
+        - heading "Legal" [level=3] [ref=e480]
+        - paragraph [ref=e481]: Legal work is naturally sequential. A contract can move through drafting, review, negotiation, counterparty comments, revision, approval, execution, and later interpretation. A litigation matter can evolve over months as new evidence appears, opposing counsel responds, deadlines change, and earlier decisions affect later options.
+        - paragraph [ref=e482]:
+          - link "Harvey’s Legal Agent Benchmark" [ref=e483] [cursor=pointer]:
+            - /url: https://www.harvey.ai/
+          - text: "is a useful example of vertical evaluation: instead of asking isolated legal questions, it gives an agent a client matter containing multiple documents and asks it to produce actual legal work product. The same pattern could extend to insurance, finance, compliance, and healthcare operations."
+        - heading "Manufacturing" [level=3] [ref=e484]
+        - paragraph [ref=e485]: Manufacturing is an almost perfect long-horizon environment because the world never stops. Machines produce telemetry, equipment degrades, parts arrive late, quality issues appear, workers change shifts, and production schedules move. Maintenance decisions made in the morning may affect throughput twelve hours later.
+        - paragraph [ref=e486]:
+          - text: Instead of asking an agent to diagnose one machine failure, the environment could ask it to operate a production line for twelve simulated hours while maximizing throughput, maintaining quality, responding to failures, and staying inside safety constraints.
+          - link "NVIDIA’s factory-operations work" [ref=e487] [cursor=pointer]:
+            - /url: https://www.nvidia.com/en-us/omniverse/solutions/factory-operations/
+          - text: points toward this kind of continuously observing and orchestrating agent.
+        - heading "Farming" [level=3] [ref=e488]
+        - paragraph [ref=e489]: A farm pushes the horizon even further. Weather, soil, crop health, machinery, labor, irrigation, disease, input prices, and biological processes evolve continuously, while some decisions have consequences that appear days or months later.
+        - paragraph [ref=e490]:
+          - text: A genuinely ambitious benchmark would not ask, “Identify weeds in this image?” It would ask, “Manage this farm for an entire simulated growing season.” The agent would coordinate irrigation, respond to disease pressure, reschedule work around weather, operate machinery, and learn from outcomes across the season. Platforms such as
+          - link "John Deere Operations Center" [ref=e491] [cursor=pointer]:
+            - /url: https://www.deere.com/en/technology-products/operations-center/
+          - text: show how machine, field, and environmental data can become the state and action interfaces for such an environment.
+        - heading "Scientific research" [level=3] [ref=e492]
+        - paragraph [ref=e493]: "Scientific research forms a long loop: an agent proposes a hypothesis, modifies code, launches an experiment, waits for results, analyzes failures, reads related work, changes direction, and runs another experiment. The objective itself may change as evidence accumulates."
+        - paragraph [ref=e494]: This is an area where final answers are especially incomplete. Evaluation needs to inspect how an agent frames problems, executes experiments, responds to feedback, reuses previous experience, and decides when to abandon an unproductive direction. A research environment should measure sustained exploration and the quality of the investigation, not only whether the final report sounds plausible.
+        - heading "Chip design" [level=3] [ref=e495]
+        - paragraph [ref=e496]: Chip design is another strong example of long-horizon engineering becoming agentic. An agent may generate RTL, run simulations, inspect failures, change the design, rerun verification, and iterate toward design closure while balancing power, performance, and area. Those loops already take humans days or weeks.
+        - paragraph [ref=e497]:
+          - link "Cadence" [ref=e498] [cursor=pointer]:
+            - /url: https://www.cadence.com/en_US/home/solutions/artificial-intelligence.html
+          - text: and
+          - link "Synopsys" [ref=e499] [cursor=pointer]:
+            - /url: https://www.synopsys.com/ai.html
+          - text: both describe increasingly autonomous systems for chip design and verification. A useful benchmark would measure not only whether the final design works, but tool cost, progress over time, recovery from failed simulations, and performance across different stages of the hardware flow.
+        - heading "Finance, cybersecurity, and operations" [level=3] [ref=e500]
+        - paragraph [ref=e501]: Many other domains have the same structure. A financial operations agent might manage reconciliations, investigate exceptions, wait for counterparties, monitor settlement, and make decisions involving real economic constraints. A cybersecurity agent might investigate an incident for hours, gather evidence from several systems, contain compromised infrastructure, monitor whether the attacker returns, and update its response as telemetry changes. A supply-chain agent could monitor inventory, suppliers, shipping delays, warehouses, and demand continuously.
+        - paragraph [ref=e502]:
+          - text: The common feature is not the industry. It is the
+          - strong [ref=e503]: temporal structure of the work
+          - text: ": persistent state, asynchronous events, scarce resources, multiple actors, uncertainty, and delayed consequences."
+        - heading "Match the environment horizon to the work" [level=3] [ref=e504]
+        - paragraph [ref=e505]: "Instead of building another benchmark where an agent receives a prompt and finishes ten minutes later, we can build persistent environments that represent actual economic and scientific processes. Then we can ask increasingly ambitious questions:"
+        - list [ref=e506]:
+          - listitem [ref=e507]: Can an agent manage a claim for three days?
+          - listitem [ref=e508]: Can it operate a factory for twenty-four hours?
+          - listitem [ref=e509]: Can it conduct fifty experiments without losing the research objective?
+          - listitem [ref=e510]: Can it manage a farm across a growing season?
+          - listitem [ref=e511]: Can it drive a chip from specification toward verification closure?
+        - paragraph [ref=e512]:
+          - text: The goal is not simply to make benchmarks longer. It is to make the
+          - strong [ref=e513]: environment horizon match the natural horizon of the work
+          - text: ". That is when long-horizon agents become more than better chatbots: they become systems that can remain responsible for an evolving piece of the world."
+        - heading "Conclusion" [level=2] [ref=e514]
+        - paragraph [ref=e515]: "The shift from short agent tasks to long-horizon work changes what matters. A capable model is no longer enough. An agent working for hours or days needs a world that persists around it: state that survives restarts, memory that keeps only what matters, events that arrive asynchronously, tools that change the world, checkpoints that enable recovery, and rewards that still mean what we intend after thousands of actions."
+        - paragraph [ref=e516]: This is why long-horizon agents increasingly look less like chat systems and more like distributed systems. The model provides reasoning and action selection, but the surrounding environment provides continuity, time, access control, synchronization, observability, and consequences.
+        - paragraph [ref=e517]: Training must change as well. Successful trajectories can become supervised fine-tuning data, expensive rollouts can be reused offline, reinforcement learning can improve behavior beyond demonstrations, and curriculum learning can gradually extend the horizon from minutes to hours. Evaluation must also move beyond final accuracy. We should measure whether the agent completed the task, how efficiently it acted, whether it recovered from failure, respected constraints, and left the world in a good state afterward.
+        - paragraph [ref=e518]: "The most valuable environments will come from work that is already long-running: insurance claims, legal matters, manufacturing, farming, scientific research, chip design, cybersecurity, and operations."
+        - paragraph [ref=e519]: The goal is not to make benchmarks longer for the sake of difficulty. It is to build persistent worlds whose time horizon matches the real work, then train agents that can remain useful, coherent, and accountable inside them. That is the architecture required for agents that truly endure.
+    - link "← Back to blogs" [ref=e521] [cursor=pointer]:
+      - /url: /blogs/
+    - generic [ref=e522]:
+      - link "GitHub" [ref=e523] [cursor=pointer]:
+        - /url: https://github.com/opaielsheikh
+      - link "LinkedIn" [ref=e524] [cursor=pointer]:
+        - /url: https://www.linkedin.com/in/opai-elsheikh-0988181b9/
+      - link "X" [ref=e525] [cursor=pointer]:
+        - /url: https://x.com/opaisOfficial
+      - link "Goodreads" [ref=e526] [cursor=pointer]:
+        - /url: https://www.goodreads.com/user/show/203802157-opai
