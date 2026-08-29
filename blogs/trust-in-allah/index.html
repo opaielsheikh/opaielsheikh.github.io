@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Do you think that if you put your full trust in Allah, your life will be worse or better? | Opai Elsheikh</title>
-  <meta name="description" content="Do you think that if you put your full trust in Allah, your life will be worse or better?">
-  
+  <title>Yusuf (12:86): I Complain of My Anguish and Sorrow Only to Allah | Opai Elsheikh</title>
+  <meta name="description"
+    content="A reflection on Yusuf 12:86, grief, sabr, and trusting Allah without becoming passive.">
+
   <!-- Open Graph / Meta -->
-  <meta property="og:title" content="Do you think that if you put your full trust in Allah, your life will be worse or better?">
-  <meta property="og:description" content="A reflection by Opai Elsheikh.">
+  <meta property="og:title" content="Yusuf (12:86): I Complain of My Anguish and Sorrow Only to Allah">
+  <meta property="og:description"
+    content="A reflection on Yusuf 12:86, grief, sabr, and trusting Allah without becoming passive.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://opaielsheikh.github.io/blogs/trust-in-allah/">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400..500;1,6..72,400..500&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&display=swap"
+    rel="stylesheet">
+
   <style>
     :root {
       --bg-color: #fbf9f5;
@@ -24,6 +29,7 @@
       --text-muted: #646059;
       --border-color: #eae6df;
       --accent-color: #c25936;
+      --quote-bg: #f4eee7;
       --font-serif: 'Newsreader', Georgia, serif;
       --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
@@ -32,6 +38,10 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
@@ -48,12 +58,18 @@
 
     .container {
       width: 100%;
-      max-width: 720px;
+      max-width: 760px;
     }
 
-    /* Top Nav */
     .nav-back {
       margin-bottom: 3.5rem;
+    }
+
+    .nav-back a,
+    .bottom-nav a,
+    .blog-content a,
+    footer.social-links a {
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
     }
 
     .nav-back a {
@@ -61,26 +77,43 @@
       font-size: 0.85rem;
       color: var(--text-muted);
       text-decoration: none;
-      transition: color 0.15s ease;
     }
 
     .nav-back a:hover {
       color: var(--text-main);
     }
 
-    /* Blog Header */
     .blog-header {
-      margin-bottom: 2.5rem;
+      margin-bottom: 2.75rem;
+    }
+
+    .kicker {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
     }
 
     .blog-title {
       font-family: var(--font-serif);
-      font-size: 2.6rem;
-      font-weight: 400;
-      line-height: 1.25;
+      font-size: clamp(2.35rem, 8vw, 4.7rem);
+      font-weight: 500;
+      line-height: 0.98;
       color: var(--text-main);
-      margin-bottom: 1.25rem;
-      letter-spacing: -0.01em;
+      margin-bottom: 1.4rem;
+      letter-spacing: 0;
+    }
+
+    .blog-subtitle {
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      line-height: 1.35;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 1.4rem;
     }
 
     .blog-meta {
@@ -90,22 +123,115 @@
       letter-spacing: 0.02em;
     }
 
-    /* Content Area */
+    .verse-card {
+      background: var(--quote-bg);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      margin: 2.5rem 0;
+      padding: 2rem;
+    }
+
+    .arabic {
+      direction: rtl;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      line-height: 1.8;
+      color: var(--text-main);
+      text-align: right;
+      margin-bottom: 1.7rem;
+    }
+
+    .translation {
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      line-height: 1.45;
+      color: #2d2a27;
+      margin-bottom: 1rem;
+    }
+
+    .attribution {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
     .blog-content {
       font-family: var(--font-serif);
       font-size: 1.35rem;
-      line-height: 1.6;
+      line-height: 1.62;
       color: #333;
       border-top: 1px solid var(--border-color);
-      padding-top: 2rem;
+      padding-top: 2.2rem;
     }
 
-    .question-highlight {
-      font-style: italic;
+    .blog-content h2 {
+      scroll-margin-top: 2rem;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
       color: var(--text-main);
+      margin: 3.2rem 0 1.1rem;
     }
 
-    /* Bottom Back Link */
+    .blog-content p {
+      margin-bottom: 1.45rem;
+    }
+
+    .blog-content a,
+    .verse-card a {
+      color: var(--accent-color);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #e2a691;
+    }
+
+    .blog-content a:hover,
+    .verse-card a:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    .pull-quote {
+      border-left: 3px solid var(--accent-color);
+      background: var(--quote-bg);
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #3d3832;
+      margin: 2rem 0;
+      padding: 1.25rem 1.35rem;
+    }
+
+    .practice-list,
+    .source-list {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: var(--text-muted);
+      margin: 1rem 0 1.8rem;
+      padding-left: 1.2rem;
+    }
+
+    .practice-list li,
+    .source-list li {
+      margin-bottom: 0.65rem;
+    }
+
+    .small-note {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.2rem 0;
+      margin: 2rem 0;
+    }
+
     .bottom-nav {
       margin-top: 3.5rem;
       margin-bottom: 3.5rem;
@@ -118,7 +244,6 @@
       text-decoration: underline;
       text-underline-offset: 4px;
       text-decoration-color: #e2a691;
-      transition: color 0.15s ease;
     }
 
     .bottom-nav a:hover {
@@ -126,7 +251,6 @@
       text-decoration-color: var(--text-main);
     }
 
-    /* Footer */
     footer.social-links {
       display: flex;
       gap: 1.5rem;
@@ -140,7 +264,6 @@
       font-size: 0.85rem;
       color: var(--text-muted);
       text-decoration: none;
-      transition: color 0.15s ease;
     }
 
     footer.social-links a:hover {
@@ -151,50 +274,165 @@
       body {
         padding: 2.5rem 1.25rem;
       }
-      .blog-title {
-        font-size: 1.9rem;
+
+      .blog-subtitle {
+        font-size: 1.22rem;
       }
+
+      .verse-card {
+        padding: 1.35rem;
+      }
+
+      .translation {
+        font-size: 1.25rem;
+      }
+
       .blog-content {
         font-size: 1.15rem;
       }
     }
   </style>
 </head>
+
 <body>
 
   <main class="container">
-    
-    <!-- Top Nav -->
     <nav class="nav-back">
       <a href="/">&larr; Opai Elsheikh</a>
     </nav>
 
-    <!-- Post Article -->
     <article>
       <header class="blog-header">
-        <h1 class="blog-title">Do you think that if you put your full trust in Allah, your life will be worse or better?</h1>
+        <p class="kicker">Yusuf 12:86</p>
+        <h1 class="blog-title">I Complain of My Anguish and Sorrow Only to Allah</h1>
+        <p class="blog-subtitle">A small reflection on grief, sabr, tawakkul, and the kind of hope that still gets up
+          and searches.</p>
         <p class="blog-meta">August 25, 2026 &middot; Opai Elsheikh</p>
       </header>
 
+      <section class="verse-card" aria-label="Quran verse">
+        <p class="arabic" lang="ar">قَالَ إِنَّمَآ أَشْكُوا۟ بَثِّى وَحُزْنِىٓ إِلَى ٱللَّهِ وَأَعْلَمُ مِنَ ٱللَّهِ
+          مَا لَا تَعْلَمُونَ ٨٦</p>
+        <p class="translation">He replied, “I complain of my anguish and sorrow only to Allah, and I know from Allah
+          what you do not know.”</p>
+        <p class="attribution">&mdash; Dr. Mustafa Khattab, The Clear Quran. Source: <a
+            href="https://quran.com/yusuf/86" target="_blank" rel="noopener">Quran.com, Yusuf 12:86</a>.</p>
+      </section>
+
       <div class="blog-content">
-        <p class="question-highlight">Do you think that if you put your full trust in Allah, your life will be worse or better?</p>
+        <p>The first thing this ayah does is remove the shame from grief. Ya‘qub, peace be upon him, is a prophet. He is
+          not weak in faith. He is not spiritually immature. Yet Surah Yusuf shows him grieving so deeply that his eyes
+          turned white from sorrow. The Qur’an does not hide that. It preserves it.</p>
+
+        <p>That matters because a lot of people misunderstand trust in Allah. They think tawakkul means you should never
+          feel shaken. They think sabr means the heart becomes silent, flat, and untouched. But Ya‘qub says something
+          more honest and more beautiful: my pain is real, but I know where to carry it.</p>
+
+        <h2 id="the-context">The Context</h2>
+        <p><a href="https://quran.com/yusuf/86" target="_blank" rel="noopener">Yusuf 12:86</a> comes after another blow
+          lands on Ya‘qub’s heart. He has already lost Yusuf, and now his sons return from Egypt without Binyamin. In
+          verse 83, he says he will hold to beautiful patience and hopes that Allah will return them all to him. In
+          verse 84, he turns away and remembers Yusuf. In verse 85, his sons worry that grief is consuming him. Then he
+          answers with this verse: he is not complaining about Allah to people; he is pouring his grief out to Allah.
+        </p>
+
+        <p>The next verse is just as important. After saying this, Ya‘qub tells his sons to go and search for Yusuf and
+          his brother, and not to despair of Allah’s mercy. So the Qur’anic pattern is not “feel sad and do nothing.” It
+          is: grieve before Allah, refuse despair, then move.</p>
+
+        <div class="pull-quote">Trust in Allah is not pretending the wound is small. It is knowing the wound has a Lord.
+        </div>
+
+        <h2 id="complaint-to-allah">Complaint to Allah</h2>
+        <p>The wording is intimate. Ya‘qub does not say he has no anguish. He says his anguish and sorrow are directed
+          to Allah. Classical tafsir highlights this distinction: the problem is not having pain, and it is not even
+          speaking pain. The danger is losing adab with Allah, turning pain into accusation, or seeking ultimate rescue
+          from the creation while forgetting the Creator.</p>
+
+        <p><a href="https://quran.com/yusuf/86/tafsirs/en-tafisr-ibn-kathir" target="_blank" rel="noopener">Ibn
+            Kathir</a> explains that Ya‘qub complained of the afflictions that struck him to Allah alone, and that he
+          expected goodness from Allah. That line is the whole balance. He had grief, but he also had expectation. He
+          had memory of loss, but also memory of Allah’s promise.</p>
+
+        <h2 id="beautiful-patience">Beautiful Patience</h2>
+        <p>Beautiful patience is not numbness. It is not performance. It is not saying “I’m fine” when you are not.
+          Beautiful patience is when the pain does not make you unjust, hopeless, or disconnected from Allah. Ya‘qub’s
+          grief did not cancel his prophethood, and his tears did not cancel his tawakkul.</p>
+
+        <p>That gives the believer permission to be human. You can cry and still trust Allah. You can miss what is gone
+          and still believe Allah knows what you do not know. You can be exhausted and still be on the path.</p>
+
+        <h2 id="tawakkul-and-effort">Tawakkul and Effort</h2>
+        <p>Tawakkul is not passivity. The Prophet Muhammad, peace and blessings be upon him, was asked whether a person
+          should leave his animal loose and rely on Allah, or tie it and rely on Allah. The answer in <a
+            href="https://sunnah.com/tirmidhi:2517" target="_blank" rel="noopener">Jami‘ at-Tirmidhi 2517</a> was: tie
+          it and rely. A <a
+            href="https://www.muftiwp.gov.my/en/artikel/tashih-al-mafahim/4224-tashih-al-mafahim-16-is-tawakkal-without-effort-permissible"
+            target="_blank" rel="noopener">Federal Territories Mufti</a> article makes the same point from the wider
+          tradition: tawakkul includes resolve, strategy, effort, supplication, and contentment with Allah’s decree.</p>
+
+        <p>This is exactly what Ya‘qub models. He complains to Allah, then gives his sons an instruction: go search. The
+          heart relies on Allah, but the limbs still take the means. In modern language, tawakkul is not “I will not
+          try.” It is “I will try without worshipping my own trying.”</p>
+
+        <h2 id="what-this-teaches">What This Teaches</h2>
+        <p>This ayah changed the way I think about hardship. The question is not only: will my life be better or worse
+          if I trust Allah? The deeper question is: where will my heart go when life gets heavy?</p>
+
+        <p>If I trust only myself, then every closed door feels like the end of the world. If I trust only people, their
+          limits become my ceiling. But if I trust Allah, the pain may still be there, the delay may still be there, and
+          the uncertainty may still be there, but despair does not get the final word.</p>
+
+        <p>Ya‘qub did not know every detail of how the story would resolve. He knew enough about Allah to keep hope
+          alive. Emphasizes the larger pattern of the surah: people plan, suffer, misunderstand, and wait, but Allah’s
+          will is never defeated. That is the part I want to carry: not certainty about the timing, not control over the
+          path, but certainty that Allah knows what I do not know.</p>
+
+        <h2 id="a-practice">A Practice</h2>
+        <p>When something hurts, I want to practice this ayah in a simple order:</p>
+
+        <ul class="practice-list">
+          <li>Name the pain honestly before Allah.</li>
+          <li>Ask Allah for help without trying to sound impressive.</li>
+          <li>Take the next halal step that is actually available.</li>
+          <li>Leave the hidden part of the outcome with Allah.</li>
+          <li>Do not let delay become despair.</li>
+        </ul>
+
+        <p class="small-note">Not every hardship becomes clear quickly. Some things make sense later, some in the
+          Hereafter, and some are simply carried with adab. But Yusuf 12:86 teaches me that carrying pain to Allah is
+          not a failure of faith. It is faith knowing where home is.</p>
+
+        <h2 id="bibliography">Bibliography</h2>
+        <ul class="source-list">
+          <li><a href="https://quran.com/yusuf/86" target="_blank" rel="noopener">Quran.com: Surah Yusuf 12:86</a>,
+            Arabic text, Clear Quran translation, and surrounding context.</li>
+          <li><a href="https://quran.com/yusuf/86/tafsirs/en-tafisr-ibn-kathir" target="_blank" rel="noopener">Ibn
+              Kathir, Tafsir of Yusuf 12:86</a>, abridged English presentation on Quran.com.</li>
+          <li><a href="https://www.englishtafsir.com/Quran/12/index.html" target="_blank" rel="noopener">Tafhim
+              al-Qur’an: Surah Yusuf</a>, Sayyid Abul Ala Maududi’s overview of the surah and its themes.</li>
+          <li><a href="https://sunnah.com/tirmidhi:2517" target="_blank" rel="noopener">Jami‘ at-Tirmidhi 2517</a>, the
+            narration about tying the animal and relying upon Allah.</li>
+          <li><a
+              href="https://www.muftiwp.gov.my/en/artikel/tashih-al-mafahim/4224-tashih-al-mafahim-16-is-tawakkal-without-effort-permissible"
+              target="_blank" rel="noopener">Federal Territories Mufti: Is Tawakkal Without Effort Permissible?</a>,
+            discussion of tawakkul, effort, and contentment.</li>
+        </ul>
       </div>
     </article>
 
-    <!-- Bottom Back Navigation Link -->
     <div class="bottom-nav">
       <a href="/blogs/">&larr; Back to blogs</a>
     </div>
 
-    <!-- Footer Links -->
     <footer class="social-links">
       <a href="https://github.com/opaielsheikh" target="_blank" rel="noopener">GitHub</a>
       <a href="https://www.linkedin.com/in/opai-elsheikh-0988181b9/" target="_blank" rel="noopener">LinkedIn</a>
       <a href="https://x.com/opaisOfficial" target="_blank" rel="noopener">X</a>
       <a href="https://www.goodreads.com/user/show/203802157-opai" target="_blank" rel="noopener">Goodreads</a>
     </footer>
-
   </main>
 
 </body>
+
 </html>
