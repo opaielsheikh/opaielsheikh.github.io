@@ -561,7 +561,7 @@
 
         <h2 id="rlm-in-code">Real Prime Agent Code</h2>
         <p>
-          The real Prime Agent repo is public, so the post should show the actual programming surface rather than a toy version. A reader should be able to look at this and understand how the system is meant to be run.
+          I did not want this section to be hand-wavy, so I went into the public repo and docs. The first thing I wanted to know was simple: can someone actually run this locally, or does it need a massive RL setup?
         </p>
 
         <pre class="code-block"><code># Install the latest stable release on macOS or Linux.
@@ -578,7 +578,7 @@ npm ci
 ./prime-agent.sh</code></pre>
 
         <p class="code-caption">
-          This is from the Prime Agent quickstart. You do not need a huge training cluster just to run the agent; the expensive part is model usage, not local installation.
+          The answer is nicer than I expected: running the agent locally is basically a CLI install. The heavy part is the model calls, not some giant training cluster on your laptop.
         </p>
 
         <p>
