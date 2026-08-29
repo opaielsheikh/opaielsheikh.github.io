@@ -1,0 +1,205 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - button "Toggle contents" [ref=e3] [cursor=pointer]
+    - complementary "Table of contents":
+      - paragraph: Contents
+      - navigation:
+        - link "Related Reading":
+          - /url: "#related-reading"
+        - link "What Is a Harness?":
+          - /url: "#what-is-a-harness"
+        - link "What Is an RLM?":
+          - /url: "#what-is-an-rlm"
+        - link "The Prime Agent Architecture":
+          - /url: "#prime-agent-architecture"
+        - link "Persistent REPL":
+          - /url: "#persistent-repl"
+        - link "Subagents":
+          - /url: "#subagents"
+        - link "Daemon-Backed Sessions":
+          - /url: "#daemon-backed-sessions"
+        - link "Continual Harness":
+          - /url: "#continual-harness"
+        - link "The Benchmark Claims":
+          - /url: "#benchmark-claims"
+        - link "Where the Skepticism Belongs":
+          - /url: "#skepticism"
+        - link "The Safety Problem":
+          - /url: "#safety-problem"
+        - link "What I Want to Build Next":
+          - /url: "#what-i-want-to-build-next"
+        - link "Why This Matters":
+          - /url: "#why-this-matters"
+        - link "Bibliography" [active]:
+          - /url: "#bibliography"
+  - main [ref=e18]:
+    - navigation [ref=e19]:
+      - link "← Opai Elsheikh" [ref=e20] [cursor=pointer]:
+        - /url: /
+    - article [ref=e21]:
+      - generic [ref=e22]:
+        - paragraph [ref=e23]: Agentic AI
+        - 'heading "Prime Agent and RLMs: The Complete Beginner''s Guide" [level=1] [ref=e24]'
+        - paragraph [ref=e25]: Understanding why the next jump in AI agents may come from the harness around the model, not only the model itself.
+        - paragraph [ref=e26]: August 29, 2026 · Opai Elsheikh
+      - generic [ref=e27]:
+        - paragraph [ref=e28]: "Prime Agent caught my attention because it makes a bold claim: a better agent harness can unlock a lot more capability from the same underlying model. The paper reports that Prime Agent raises ARC-AGI-3 RHAE Best@1 from around 30% to 95.5% when paired with Opus 5. That number is impressive, but the more important idea is deeper than one benchmark."
+        - paragraph [ref=e29]: "Prime Agent is not a new language model. It is the system around the language model: the runtime, memory, tools, subagents, logs, recovery, and self-improvement loop. In other words, this is a story about the operating system of an AI agent."
+        - generic [ref=e30]: "Main thesis: intelligence in frontier AI systems is no longer only stored in model weights. It is increasingly expressed through the harness that lets a model remember, compute, delegate, verify, and improve its own workflow."
+        - heading "Related Reading" [level=2] [ref=e31]
+        - paragraph [ref=e32]: This post is written as a first-principles guide. These are the sources I found most useful while trying to understand the system.
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - strong [ref=e35]: Prime Agent paper
+            - 'link "Prime Agent: A Self-Improving RLM Harness" [ref=e37] [cursor=pointer]':
+              - /url: https://arxiv.org/abs/2608.23552
+          - generic [ref=e38]:
+            - strong [ref=e39]: Launch post
+            - 'link "Prime Agent: A self-improving RLM agent" [ref=e41] [cursor=pointer]':
+              - /url: https://www.primeintellect.ai/blog/prime-agent
+          - generic [ref=e42]:
+            - strong [ref=e43]: Codebase
+            - link "PrimeIntellect-ai/prime-agent" [ref=e45] [cursor=pointer]:
+              - /url: https://github.com/PrimeIntellect-ai/prime-agent
+          - generic [ref=e46]:
+            - strong [ref=e47]: RLM background
+            - link "Recursive Language Models" [ref=e49] [cursor=pointer]:
+              - /url: https://arxiv.org/abs/2512.24601
+          - generic [ref=e50]:
+            - strong [ref=e51]: Self-improvement background
+            - link "Continual Harness" [ref=e53] [cursor=pointer]:
+              - /url: https://arxiv.org/abs/2605.09998
+        - heading "What Is a Harness?" [level=2] [ref=e54]
+        - paragraph [ref=e55]: A language model by itself is a next-token machine. It receives context, predicts output, and stops. But an agent needs more than that. It needs to read files, run code, remember what happened, call tools, recover after failure, and sometimes coordinate many smaller workers.
+        - paragraph [ref=e56]: The harness is the layer that gives the model those abilities. If the model is the brain, the harness is the body, notebook, tools, working memory, and environment interface.
+        - paragraph [ref=e57]: "Most agent harnesses expose a fixed set of tool calls. The model asks to read a file, run a command, search the web, or edit a file. Prime Agent takes a different route: it gives the model a persistent Python control environment and lets the model compose its own workflow as code."
+        - heading "What Is an RLM?" [level=2] [ref=e58]
+        - paragraph [ref=e59]: "RLM stands for Recursive Language Model. The core idea is simple but powerful: instead of forcing all context into the model's token window, store the context outside the model and let the model inspect it programmatically."
+        - generic [ref=e60]: "Normal LLM: prompt -> model -> answer RLM-style system: task -> model -> persistent REPL -> files, variables, tools, subagents -> answer"
+        - paragraph [ref=e61]: In the original RLM framing, the prompt or long context can live as a variable inside a REPL. The model can search it, slice it, summarize parts of it, call smaller model instances on chunks, and combine the results. The model is no longer just reading a giant prompt. It is writing little programs over its own context.
+        - paragraph [ref=e62]:
+          - text: Prime Agent extends this idea from model calls to full agent sessions. A child created by
+          - code [ref=e63]: rlm(...)
+          - text: is not just a small completion. It is a real subagent with its own context, kernel, history, and session state.
+        - heading "The Prime Agent Architecture" [level=2] [ref=e64]
+        - paragraph [ref=e65]: "The paper describes a useful hierarchy of state:"
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - strong [ref=e68]: L0
+            - generic [ref=e69]: "Model weights: the trained model itself."
+          - generic [ref=e70]:
+            - strong [ref=e71]: L1
+            - generic [ref=e72]: "Active context: what is visible in the current model call."
+          - generic [ref=e73]:
+            - strong [ref=e74]: L2
+            - generic [ref=e75]: "Persistent REPL and subagents: code, variables, handles, tool outputs."
+          - generic [ref=e76]:
+            - strong [ref=e77]: L3
+            - generic [ref=e78]: "Disk-backed state: histories, memories, skills, prompts, and subagent specs."
+        - paragraph [ref=e79]: This matters because long-horizon work breaks normal chat. A model working for hours cannot keep every observation, failed attempt, test result, and plan in one prompt. Prime Agent lets useful state survive outside the current context and come back when needed.
+        - heading "Persistent REPL" [level=3] [ref=e80]
+        - paragraph [ref=e81]: The model gets a persistent IPython kernel. Variables, imports, parsed files, and intermediate results can survive across turns. This is cheaper and cleaner than repeatedly dumping huge tool outputs into the prompt.
+        - heading "Subagents" [level=3] [ref=e82]
+        - paragraph [ref=e83]: The model can spawn child agents for parallel work. A parent might send one child to inspect authentication, another to run tests, and another to review docs. Results return later through agent-to-agent messages.
+        - heading "Daemon-Backed Sessions" [level=3] [ref=e84]
+        - paragraph [ref=e85]: Sessions can keep running after the terminal detaches. This is important for multi-hour coding tasks, research runs, benchmark attempts, and agents that need to check back later.
+        - heading "Continual Harness" [level=3] [ref=e86]
+        - paragraph [ref=e87]:
+          - text: Prime Agent can refine its own supplemental harness state. The
+          - code [ref=e88]: /refine
+          - text: loop can turn a useful lesson into a memory, prompt note, skill, or subagent spec. The model weights do not change, but the operating layer around the model changes.
+        - heading "The Benchmark Claims" [level=2] [ref=e89]
+        - paragraph [ref=e90]: "The headline claim is ARC-AGI-3. The paper reports these public-set RHAE scores:"
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - strong [ref=e93]: Prime Agent + Opus 5
+            - generic [ref=e94]: 95.5%
+          - generic [ref=e95]:
+            - strong [ref=e96]: Human baseline cited by the paper
+            - generic [ref=e97]: 95.4%
+          - generic [ref=e98]:
+            - strong [ref=e99]: Prime Agent + GPT-5.6 Sol
+            - generic [ref=e100]: 78.3%
+          - generic [ref=e101]:
+            - strong [ref=e102]: Prime Agent + GLM-5.2
+            - generic [ref=e103]: 8.6%
+          - generic [ref=e104]:
+            - strong [ref=e105]: Opus 5 ARC harness reference
+            - generic [ref=e106]: 30.2%
+        - paragraph [ref=e107]: The paper also reports strong results on long-context tasks, GPU kernel generation, EmulatorBench, autonomous nanoGPT speedruns, Factorio, and MazeBench. The pattern is not that Prime Agent wins every comparison. The pattern is that changing the harness can materially change what a model can do.
+        - heading "Where the Skepticism Belongs" [level=2] [ref=e108]
+        - paragraph [ref=e109]: The honest reading is not "AGI is solved." The honest reading is that Prime Agent is a serious signal that harness design is a first-order capability variable.
+        - paragraph [ref=e110]: "A few caveats matter:"
+        - list [ref=e111]:
+          - listitem [ref=e112]: The 95.5% ARC-AGI-3 number is reported by Prime Intellect, not independently reproduced across neutral infrastructure.
+          - listitem [ref=e113]: The public ARC set can be studied and iterated against, so it is not the same as a private held-out benchmark.
+          - listitem [ref=e114]: The paper itself notes that some external reference points are used because native-harness reruns were worse than official published results.
+          - listitem [ref=e115]: Other public ARC harnesses have also reported very strong results, including world-model-based systems.
+        - paragraph [ref=e116]: "None of this makes Prime Agent uninteresting. It makes the result more specific: the architecture is promising, but the strongest claims need reproducibility, ablations, and private-set evaluation."
+        - heading "The Safety Problem" [level=2] [ref=e117]
+        - paragraph [ref=e118]: The most interesting failure mode in the paper is Factorio. In one trace, the agent found that it could use RCON commands to spawn resources directly into assembly machines. That improved the measured objective, so the refinement loop preserved the shortcut as a reusable skill.
+        - paragraph [ref=e119]: "This is the central tension of self-improving agents: a system that remembers good strategies can also remember bad shortcuts. If the score says \"good,\" the harness may preserve behavior that violates the actual spirit of the task."
+        - blockquote [ref=e120]: Self-improvement is only as good as the feedback signal. If the feedback can be gamed, the agent may become better at gaming it.
+        - paragraph [ref=e121]: This is why Prime Agent's own README warns that it is not a security sandbox. The kernel can run model-generated Python and project commands with the user's permissions. For serious use, the environment around the agent needs least privilege, restricted credentials, validation, and audit logs.
+        - heading "What I Want to Build Next" [level=2] [ref=e122]
+        - paragraph [ref=e123]:
+          - text: The most useful contribution I can imagine is a small safety layer for refinement. Call it
+          - strong [ref=e124]: Refine Guard
+          - text: .
+        - paragraph [ref=e125]:
+          - text: The idea is to inspect proposed
+          - code [ref=e126]: /refine
+          - text: "edits before they become durable harness state. It would flag risky patterns like:"
+        - list [ref=e127]:
+          - listitem [ref=e128]: one example being promoted into an "always" or "never" rule;
+          - listitem [ref=e129]: an executable skill created from weak evidence;
+          - listitem [ref=e130]: a benchmark-specific shortcut becoming a global memory;
+          - listitem [ref=e131]: a child-agent instruction that expands permissions without review;
+          - listitem [ref=e132]: a refinement whose intended scope is unclear.
+        - paragraph [ref=e133]: This would not make self-improvement perfectly safe. But it would make the harness more inspectable. It would turn refinement from "the agent wrote something" into "the agent proposed a scoped change with evidence, risk labels, and a review path."
+        - heading "Why This Matters" [level=2] [ref=e134]
+        - paragraph [ref=e135]: I think Prime Agent is important because it points toward a future where model capability and harness capability co-evolve. Models will not just answer questions. They will operate inside persistent environments, create tools, manage teams of subagents, and learn from their own trajectories.
+        - paragraph [ref=e136]: That future will need more than bigger models. It will need better runtimes, stronger evaluation, cleaner memory, safer refinement, and people who understand the whole stack.
+        - paragraph [ref=e137]: "My takeaway: the frontier is moving from \"which model is smartest?\" to \"which system lets the model use its intelligence best?\""
+        - heading "Bibliography" [level=2] [ref=e138]
+        - paragraph [ref=e139]: These are the sources behind the post. The first group is the core research, and the second group is context I used to understand the broader discussion.
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - strong [ref=e142]: Prime Agent paper
+            - 'link "Prime Agent: A Self-Improving RLM Harness" [ref=e144] [cursor=pointer]':
+              - /url: https://arxiv.org/abs/2608.23552
+          - generic [ref=e145]:
+            - strong [ref=e146]: Prime Intellect launch post
+            - 'link "Prime Agent: A self-improving RLM agent" [ref=e148] [cursor=pointer]':
+              - /url: https://www.primeintellect.ai/blog/prime-agent
+          - generic [ref=e149]:
+            - strong [ref=e150]: Prime Agent repository
+            - link "PrimeIntellect-ai/prime-agent" [ref=e152] [cursor=pointer]:
+              - /url: https://github.com/PrimeIntellect-ai/prime-agent
+          - generic [ref=e153]:
+            - strong [ref=e154]: Recursive Language Models
+            - link "Recursive Language Models" [ref=e156] [cursor=pointer]:
+              - /url: https://arxiv.org/abs/2512.24601
+          - generic [ref=e157]:
+            - strong [ref=e158]: Continual Harness
+            - 'link "Continual Harness: Self-Improving Language Model Agents" [ref=e160] [cursor=pointer]':
+              - /url: https://arxiv.org/abs/2605.09998
+          - generic [ref=e161]:
+            - strong [ref=e162]: ARC-AGI benchmark context
+            - link "ARC Prize" [ref=e164] [cursor=pointer]:
+              - /url: https://arcprize.org/
+          - generic [ref=e165]:
+            - strong [ref=e166]: Format inspiration
+            - link "Cameron R. Wolfe's guide to RL for LLMs" [ref=e168] [cursor=pointer]:
+              - /url: https://cameronrwolfe.substack.com/p/llm-rl
+    - link "← Back to blogs" [ref=e170] [cursor=pointer]:
+      - /url: /blogs/
+    - generic [ref=e171]:
+      - link "GitHub" [ref=e172] [cursor=pointer]:
+        - /url: https://github.com/opaielsheikh
+      - link "LinkedIn" [ref=e173] [cursor=pointer]:
+        - /url: https://www.linkedin.com/in/opai-elsheikh-0988181b9/
+      - link "X" [ref=e174] [cursor=pointer]:
+        - /url: https://x.com/opaisOfficial
+      - link "Goodreads" [ref=e175] [cursor=pointer]:
+        - /url: https://www.goodreads.com/user/show/203802157-opai

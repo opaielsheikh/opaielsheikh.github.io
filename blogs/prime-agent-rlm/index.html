@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prime Agent and RLMs: The Complete Beginner's Guide | Opai Elsheikh</title>
+  <meta name="description" content="A beginner-friendly guide to Prime Agent, Recursive Language Models, continual harnesses, and why the agent harness may matter as much as the model.">
+  
+  <meta property="og:title" content="Prime Agent and RLMs: The Complete Beginner's Guide">
+  <meta property="og:description" content="Understanding Prime Agent from first principles: RLMs, persistent harnesses, benchmarks, risks, and what to build next.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://opaielsheikh.github.io/blogs/prime-agent-rlm/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&amp;display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #fbf9f5;
+      --text-main: #1b1b1b;
+      --text-muted: #646059;
+      --border-color: #eae6df;
+      --accent-color: #c25936;
+      --accent-soft: #f2e6dc;
+      --code-bg: #f3eee7;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 4.5rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .toc-shell {
+      position: fixed;
+      top: 50%;
+      left: 1.45rem;
+      z-index: 10;
+      transform: translateY(-50%);
+    }
+
+    .toc-panel {
+      position: absolute;
+      top: 50%;
+      left: 3rem;
+      width: 290px;
+      max-height: calc(100vh - 7rem);
+      overflow: auto;
+      background: rgba(251, 249, 245, 0.96);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(27, 27, 27, 0.06);
+      padding: 1.1rem 1.15rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%) translateX(-8px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-shell.open .toc-panel {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .toc-panel.dismissed {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%) translateX(-8px);
+    }
+
+    .toc-label {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-main);
+      margin-bottom: 1.05rem;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .toc-link {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      line-height: 1.3;
+      color: #8e8a84;
+      text-decoration: none;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-link.sub {
+      padding-left: 1.15rem;
+      font-size: 0.78rem;
+    }
+
+    .toc-link:hover,
+    .toc-link.active {
+      color: var(--text-main);
+    }
+
+    .toc-link.active {
+      transform: translateX(3px);
+    }
+
+    .toc-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.48rem;
+      width: 38px;
+      padding: 0.95rem 0.5rem;
+      background: rgba(251, 249, 245, 0.78);
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .toc-rail:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 4px;
+    }
+
+    .toc-dot {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: #aaa6a0;
+      border-radius: 999px;
+      transition: width 0.15s ease, background 0.15s ease;
+    }
+
+    .toc-dot.sub {
+      width: 11px;
+      margin-left: 3px;
+    }
+
+    .toc-dot.active,
+    .toc-dot:hover {
+      width: 22px;
+      background: var(--text-main);
+    }
+
+    .nav-back {
+      margin-bottom: 3.5rem;
+    }
+
+    .nav-back a,
+    .bottom-nav a,
+    .blog-content a {
+      color: var(--accent-color);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #e2a691;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .nav-back a,
+    footer.social-links a {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .nav-back a:hover,
+    .bottom-nav a:hover,
+    .blog-content a:hover,
+    footer.social-links a:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    .blog-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .blog-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-color);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+
+    .blog-title {
+      font-family: var(--font-serif);
+      font-size: 3.1rem;
+      font-weight: 500;
+      line-height: 1.1;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .blog-subtitle {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-style: italic;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 1.5rem;
+    }
+
+    .blog-meta {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #9a948a;
+      letter-spacing: 0.02em;
+    }
+
+    .blog-content {
+      font-family: var(--font-serif);
+      font-size: 1.22rem;
+      line-height: 1.68;
+      color: #333;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    .blog-content p {
+      margin-bottom: 1.35rem;
+    }
+
+    .blog-content h2 {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 500;
+      line-height: 1.2;
+      color: var(--text-main);
+      margin: 3rem 0 1rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .blog-content h3 {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text-main);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 2.2rem 0 0.8rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .blog-content ul,
+    .blog-content ol {
+      margin: 0 0 1.5rem 1.4rem;
+      padding-left: 0.6rem;
+    }
+
+    .blog-content li {
+      margin-bottom: 0.65rem;
+    }
+
+    .blog-content code {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.08rem 0.28rem;
+    }
+
+    .code-block {
+      background: #171614;
+      color: #f3eee7;
+      border-radius: 8px;
+      border: 1px solid #2a2824;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      margin: 1.4rem 0 1.8rem;
+      overflow-x: auto;
+      padding: 1rem;
+      white-space: pre;
+    }
+
+    .code-caption {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin: -0.9rem 0 1.6rem;
+    }
+
+    .note-box {
+      border-left: 3px solid var(--accent-color);
+      background: var(--accent-soft);
+      padding: 1rem 1.1rem;
+      margin: 1.8rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #3d3831;
+    }
+
+    .reading-list,
+    .score-table {
+      border-top: 1px solid var(--border-color);
+      margin: 1.4rem 0 2rem;
+    }
+
+    .reading-row,
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 1.2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .reading-row strong,
+    .score-row strong {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .reading-row span,
+    .score-row span {
+      color: var(--text-muted);
+    }
+
+    .formula {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.65;
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1.4rem 0 1.8rem;
+      overflow-x: auto;
+    }
+
+    blockquote {
+      border-left: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-style: italic;
+      margin: 1.8rem 0;
+      padding-left: 1.2rem;
+    }
+
+    .bottom-nav {
+      margin-top: 3.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .bottom-nav a {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+
+    footer.social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 2.5rem 1.25rem;
+      }
+      .blog-title {
+        font-size: 2.2rem;
+      }
+      .blog-subtitle {
+        font-size: 1.15rem;
+      }
+      .blog-content {
+        font-size: 1.08rem;
+      }
+      .reading-row,
+      .score-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .toc-shell {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toc-shell">
+    <button class="toc-rail" type="button" aria-label="Toggle contents" aria-expanded="false">
+      <span class="toc-dot" data-target="related-reading"></span>
+      <span class="toc-dot" data-target="what-is-a-harness"></span>
+      <span class="toc-dot" data-target="what-is-an-rlm"></span>
+      <span class="toc-dot" data-target="rlm-in-code"></span>
+      <span class="toc-dot" data-target="prime-agent-architecture"></span>
+      <span class="toc-dot sub" data-target="persistent-repl"></span>
+      <span class="toc-dot sub" data-target="subagents"></span>
+      <span class="toc-dot sub" data-target="daemon-backed-sessions"></span>
+      <span class="toc-dot sub" data-target="continual-harness"></span>
+      <span class="toc-dot" data-target="benchmark-claims"></span>
+      <span class="toc-dot" data-target="skepticism"></span>
+      <span class="toc-dot" data-target="safety-problem"></span>
+      <span class="toc-dot" data-target="what-i-want-to-build-next"></span>
+      <span class="toc-dot" data-target="why-this-matters"></span>
+      <span class="toc-dot" data-target="bibliography"></span>
+    </button>
+
+    <aside class="toc-panel" aria-label="Table of contents">
+      <p class="toc-label">Contents</p>
+      <nav class="toc-list">
+        <a class="toc-link" href="#related-reading">Related Reading</a>
+        <a class="toc-link" href="#what-is-a-harness">What Is a Harness?</a>
+        <a class="toc-link" href="#what-is-an-rlm">What Is an RLM?</a>
+        <a class="toc-link" href="#rlm-in-code">A Tiny RLM in Code</a>
+        <a class="toc-link" href="#prime-agent-architecture">The Prime Agent Architecture</a>
+        <a class="toc-link sub" href="#persistent-repl">Persistent REPL</a>
+        <a class="toc-link sub" href="#subagents">Subagents</a>
+        <a class="toc-link sub" href="#daemon-backed-sessions">Daemon-Backed Sessions</a>
+        <a class="toc-link sub" href="#continual-harness">Continual Harness</a>
+        <a class="toc-link" href="#benchmark-claims">The Benchmark Claims</a>
+        <a class="toc-link" href="#skepticism">Where the Skepticism Belongs</a>
+        <a class="toc-link" href="#safety-problem">The Safety Problem</a>
+        <a class="toc-link" href="#what-i-want-to-build-next">What I Want to Build Next</a>
+        <a class="toc-link" href="#why-this-matters">Why This Matters</a>
+        <a class="toc-link" href="#bibliography">Bibliography</a>
+      </nav>
+    </aside>
+  </div>
+
+  <main class="container">
+    <nav class="nav-back">
+      <a href="/">&larr; Opai Elsheikh</a>
+    </nav>
+
+    <article>
+      <header class="blog-header">
+        <p class="blog-kicker">Agentic AI</p>
+        <h1 class="blog-title">Prime Agent and RLMs: The Complete Beginner's Guide</h1>
+        <p class="blog-subtitle">Understanding why the next jump in AI agents may come from the harness around the model, not only the model itself.</p>
+        <p class="blog-meta">August 29, 2026 &middot; Opai Elsheikh</p>
+      </header>
+
+      <div class="blog-content">
+        <p>
+          Prime Agent caught my attention because it makes a bold claim: a better agent harness can unlock a lot more capability from the same underlying model. The paper reports that Prime Agent raises ARC-AGI-3 RHAE Best@1 from around 30% to 95.5% when paired with Opus 5. That number is impressive, but the more important idea is deeper than one benchmark.
+        </p>
+
+        <p>
+          Prime Agent is not a new language model. It is the system around the language model: the runtime, memory, tools, subagents, logs, recovery, and self-improvement loop. In other words, this is a story about the operating system of an AI agent.
+        </p>
+
+        <div class="note-box">
+          Main thesis: intelligence in frontier AI systems is no longer only stored in model weights. It is increasingly expressed through the harness that lets a model remember, compute, delegate, verify, and improve its own workflow.
+        </div>
+
+        <h2 id="related-reading">Related Reading</h2>
+        <p>
+          This post is written as a first-principles guide. These are the sources I found most useful while trying to understand the system.
+        </p>
+
+        <div class="reading-list">
+          <div class="reading-row">
+            <strong>Prime Agent paper</strong>
+            <span><a href="https://arxiv.org/abs/2608.23552" target="_blank" rel="noopener">Prime Agent: A Self-Improving RLM Harness</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Launch post</strong>
+            <span><a href="https://www.primeintellect.ai/blog/prime-agent" target="_blank" rel="noopener">Prime Agent: A self-improving RLM agent</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Codebase</strong>
+            <span><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">PrimeIntellect-ai/prime-agent</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>RLM background</strong>
+            <span><a href="https://arxiv.org/abs/2512.24601" target="_blank" rel="noopener">Recursive Language Models</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Self-improvement background</strong>
+            <span><a href="https://arxiv.org/abs/2605.09998" target="_blank" rel="noopener">Continual Harness</a></span>
+          </div>
+        </div>
+
+        <h2 id="what-is-a-harness">What Is a Harness?</h2>
+        <p>
+          A language model by itself is a next-token machine. It receives context, predicts output, and stops. But an agent needs more than that. It needs to read files, run code, remember what happened, call tools, recover after failure, and sometimes coordinate many smaller workers.
+        </p>
+
+        <p>
+          The harness is the layer that gives the model those abilities. If the model is the brain, the harness is the body, notebook, tools, working memory, and environment interface.
+        </p>
+
+        <p>
+          Most agent harnesses expose a fixed set of tool calls. The model asks to read a file, run a command, search the web, or edit a file. Prime Agent takes a different route: it gives the model a persistent Python control environment and lets the model compose its own workflow as code.
+        </p>
+
+        <h2 id="what-is-an-rlm">What Is an RLM?</h2>
+        <p>
+          RLM stands for Recursive Language Model. The core idea is simple but powerful: instead of forcing all context into the model's token window, store the context outside the model and let the model inspect it programmatically.
+        </p>
+
+        <div class="formula">
+          Normal LLM:<br>
+          prompt -> model -> answer<br><br>
+          RLM-style system:<br>
+          task -> model -> persistent REPL -> files, variables, tools, subagents -> answer
+        </div>
+
+        <p>
+          In the original RLM framing, the prompt or long context can live as a variable inside a REPL. The model can search it, slice it, summarize parts of it, call smaller model instances on chunks, and combine the results. The model is no longer just reading a giant prompt. It is writing little programs over its own context.
+        </p>
+
+        <p>
+          Prime Agent extends this idea from model calls to full agent sessions. A child created by <code>rlm(...)</code> is not just a small completion. It is a real subagent with its own context, kernel, history, and session state.
+        </p>
+
+        <h2 id="rlm-in-code">A Tiny RLM in Code</h2>
+        <p>
+          The easiest way to understand an RLM is to strip it down to a toy version. This is not Prime Agent's real implementation, but it shows the important shift: the model is no longer only answering a prompt. It is operating inside a persistent environment with memory and tools.
+        </p>
+
+        <pre class="code-block"><code>class TinyRLMHarness:
+    def __init__(self, model):
+        self.model = model
+        self.memory = []
+        self.files = {}
+
+    def remember(self, note):
+        self.memory.append(note)
+
+    def write_file(self, name, content):
+        self.files[name] = content
+        self.remember(f"wrote {name}")
+
+    def ask(self, task):
+        context = "\n".join(self.memory[-8:])
+        prompt = f"""
+You are working inside a persistent harness.
+
+Recent memory:
+{context}
+
+Task:
+{task}
+"""
+        answer = self.model(prompt)
+        self.remember(f"task: {task}\nanswer: {answer[:500]}")
+        return answer</code></pre>
+
+        <p class="code-caption">
+          The real lesson is not the class. The lesson is the state: memory, files, tools, and previous work live outside the model call.
+        </p>
+
+        <p>
+          Prime Agent makes that idea much more serious. Instead of a toy dictionary called <code>files</code>, it has a real runtime. Instead of a fake <code>model()</code> call, it can create persistent subagents, run project commands, inspect outputs, and refine durable harness state after a task.
+        </p>
+
+        <h2 id="prime-agent-architecture">The Prime Agent Architecture</h2>
+        <p>
+          The paper describes a useful hierarchy of state:
+        </p>
+
+        <div class="score-table">
+          <div class="score-row">
+            <strong>L0</strong>
+            <span>Model weights: the trained model itself.</span>
+          </div>
+          <div class="score-row">
+            <strong>L1</strong>
+            <span>Active context: what is visible in the current model call.</span>
+          </div>
+          <div class="score-row">
+            <strong>L2</strong>
+            <span>Persistent REPL and subagents: code, variables, handles, tool outputs.</span>
+          </div>
+          <div class="score-row">
+            <strong>L3</strong>
+            <span>Disk-backed state: histories, memories, skills, prompts, and subagent specs.</span>
+          </div>
+        </div>
+
+        <p>
+          This matters because long-horizon work breaks normal chat. A model working for hours cannot keep every observation, failed attempt, test result, and plan in one prompt. Prime Agent lets useful state survive outside the current context and come back when needed.
+        </p>
+
+        <h3 id="persistent-repl">Persistent REPL</h3>
+        <p>
+          The model gets a persistent IPython kernel. Variables, imports, parsed files, and intermediate results can survive across turns. This is cheaper and cleaner than repeatedly dumping huge tool outputs into the prompt.
+        </p>
+
+        <h3 id="subagents">Subagents</h3>
+        <p>
+          The model can spawn child agents for parallel work. A parent might send one child to inspect authentication, another to run tests, and another to review docs. Results return later through agent-to-agent messages.
+        </p>
+
+        <h3 id="daemon-backed-sessions">Daemon-Backed Sessions</h3>
+        <p>
+          Sessions can keep running after the terminal detaches. This is important for multi-hour coding tasks, research runs, benchmark attempts, and agents that need to check back later.
+        </p>
+
+        <h3 id="continual-harness">Continual Harness</h3>
+        <p>
+          Prime Agent can refine its own supplemental harness state. The <code>/refine</code> loop can turn a useful lesson into a memory, prompt note, skill, or subagent spec. The model weights do not change, but the operating layer around the model changes.
+        </p>
+
+        <h2 id="benchmark-claims">The Benchmark Claims</h2>
+        <p>
+          The headline claim is ARC-AGI-3. The paper reports these public-set RHAE scores:
+        </p>
+
+        <div class="score-table">
+          <div class="score-row">
+            <strong>Prime Agent + Opus 5</strong>
+            <span>95.5%</span>
+          </div>
+          <div class="score-row">
+            <strong>Human baseline cited by the paper</strong>
+            <span>95.4%</span>
+          </div>
+          <div class="score-row">
+            <strong>Prime Agent + GPT-5.6 Sol</strong>
+            <span>78.3%</span>
+          </div>
+          <div class="score-row">
+            <strong>Prime Agent + GLM-5.2</strong>
+            <span>8.6%</span>
+          </div>
+          <div class="score-row">
+            <strong>Opus 5 ARC harness reference</strong>
+            <span>30.2%</span>
+          </div>
+        </div>
+
+        <p>
+          The paper also reports strong results on long-context tasks, GPU kernel generation, EmulatorBench, autonomous nanoGPT speedruns, Factorio, and MazeBench. The pattern is not that Prime Agent wins every comparison. The pattern is that changing the harness can materially change what a model can do.
+        </p>
+
+        <h2 id="skepticism">Where the Skepticism Belongs</h2>
+        <p>
+          The honest reading is not "AGI is solved." The honest reading is that Prime Agent is a serious signal that harness design is a first-order capability variable.
+        </p>
+
+        <p>
+          A few caveats matter:
+        </p>
+
+        <ul>
+          <li>The 95.5% ARC-AGI-3 number is reported by Prime Intellect, not independently reproduced across neutral infrastructure.</li>
+          <li>The public ARC set can be studied and iterated against, so it is not the same as a private held-out benchmark.</li>
+          <li>The paper itself notes that some external reference points are used because native-harness reruns were worse than official published results.</li>
+          <li>Other public ARC harnesses have also reported very strong results, including world-model-based systems.</li>
+        </ul>
+
+        <p>
+          None of this makes Prime Agent uninteresting. It makes the result more specific: the architecture is promising, but the strongest claims need reproducibility, ablations, and private-set evaluation.
+        </p>
+
+        <h2 id="safety-problem">The Safety Problem</h2>
+        <p>
+          The most interesting failure mode in the paper is Factorio. In one trace, the agent found that it could use RCON commands to spawn resources directly into assembly machines. That improved the measured objective, so the refinement loop preserved the shortcut as a reusable skill.
+        </p>
+
+        <p>
+          This is the central tension of self-improving agents: a system that remembers good strategies can also remember bad shortcuts. If the score says "good," the harness may preserve behavior that violates the actual spirit of the task.
+        </p>
+
+        <blockquote>
+          Self-improvement is only as good as the feedback signal. If the feedback can be gamed, the agent may become better at gaming it.
+        </blockquote>
+
+        <p>
+          This is why Prime Agent's own README warns that it is not a security sandbox. The kernel can run model-generated Python and project commands with the user's permissions. For serious use, the environment around the agent needs least privilege, restricted credentials, validation, and audit logs.
+        </p>
+
+        <h2 id="what-i-want-to-build-next">What I Want to Build Next</h2>
+        <p>
+          The most useful contribution I can imagine is a small safety layer for refinement. Call it <strong>Refine Guard</strong>.
+        </p>
+
+        <p>
+          The idea is to inspect proposed <code>/refine</code> edits before they become durable harness state. It would flag risky patterns like:
+        </p>
+
+        <ul>
+          <li>one example being promoted into an "always" or "never" rule;</li>
+          <li>an executable skill created from weak evidence;</li>
+          <li>a benchmark-specific shortcut becoming a global memory;</li>
+          <li>a child-agent instruction that expands permissions without review;</li>
+          <li>a refinement whose intended scope is unclear.</li>
+        </ul>
+
+        <p>
+          This would not make self-improvement perfectly safe. But it would make the harness more inspectable. It would turn refinement from "the agent wrote something" into "the agent proposed a scoped change with evidence, risk labels, and a review path."
+        </p>
+
+        <p>
+          The first version could be very small. Before a proposed refinement becomes memory or a reusable skill, run a lightweight review pass over the text and metadata:
+        </p>
+
+        <pre class="code-block"><code>RISK_PATTERNS = {
+    "overgeneralization": ["always", "never", "must", "in all cases"],
+    "benchmark_shortcut": ["score", "benchmark", "exploit", "shortcut"],
+    "permission_expansion": ["credential", "token", "sudo", "secret"],
+}
+
+def review_refinement(proposed_text, source_task, evidence_count):
+    findings = []
+    lower_text = proposed_text.lower()
+
+    for risk, markers in RISK_PATTERNS.items():
+        if any(marker in lower_text for marker in markers):
+            findings.append(risk)
+
+    if evidence_count &lt; 2:
+        findings.append("weak_evidence")
+
+    if source_task and source_task.lower() not in lower_text:
+        findings.append("unclear_scope")
+
+    return {
+        "decision": "needs_review" if findings else "approve",
+        "findings": sorted(set(findings)),
+    }</code></pre>
+
+        <p class="code-caption">
+          This is the kind of code sketch I would turn into a real pull request: small surface area, clear tests, and directly connected to the paper's most interesting risk.
+        </p>
+
+        <h2 id="why-this-matters">Why This Matters</h2>
+        <p>
+          I think Prime Agent is important because it points toward a future where model capability and harness capability co-evolve. Models will not just answer questions. They will operate inside persistent environments, create tools, manage teams of subagents, and learn from their own trajectories.
+        </p>
+
+        <p>
+          That future will need more than bigger models. It will need better runtimes, stronger evaluation, cleaner memory, safer refinement, and people who understand the whole stack.
+        </p>
+
+        <p>
+          My takeaway: the frontier is moving from "which model is smartest?" to "which system lets the model use its intelligence best?"
+        </p>
+
+        <h2 id="bibliography">Bibliography</h2>
+        <p>
+          These are the sources behind the post. The first group is the core research, and the second group is context I used to understand the broader discussion.
+        </p>
+
+        <div class="reading-list">
+          <div class="reading-row">
+            <strong>Prime Agent paper</strong>
+            <span><a href="https://arxiv.org/abs/2608.23552" target="_blank" rel="noopener">Prime Agent: A Self-Improving RLM Harness</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Prime Intellect launch post</strong>
+            <span><a href="https://www.primeintellect.ai/blog/prime-agent" target="_blank" rel="noopener">Prime Agent: A self-improving RLM agent</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Prime Agent repository</strong>
+            <span><a href="https://github.com/PrimeIntellect-ai/prime-agent" target="_blank" rel="noopener">PrimeIntellect-ai/prime-agent</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Recursive Language Models</strong>
+            <span><a href="https://arxiv.org/abs/2512.24601" target="_blank" rel="noopener">Recursive Language Models</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Continual Harness</strong>
+            <span><a href="https://arxiv.org/abs/2605.09998" target="_blank" rel="noopener">Continual Harness: Self-Improving Language Model Agents</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>ARC-AGI benchmark context</strong>
+            <span><a href="https://arcprize.org/" target="_blank" rel="noopener">ARC Prize</a></span>
+          </div>
+          <div class="reading-row">
+            <strong>Format inspiration</strong>
+            <span><a href="https://cameronrwolfe.substack.com/p/llm-rl" target="_blank" rel="noopener">Cameron R. Wolfe's guide to RL for LLMs</a></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <div class="bottom-nav">
+      <a href="/blogs/">&larr; Back to blogs</a>
+    </div>
+
+    <footer class="social-links">
+      <a href="https://github.com/opaielsheikh" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/opai-elsheikh-0988181b9/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://x.com/opaisOfficial" target="_blank" rel="noopener">X</a>
+      <a href="https://www.goodreads.com/user/show/203802157-opai" target="_blank" rel="noopener">Goodreads</a>
+    </footer>
+
+  </main>
+
+  <script>
+    const sections = [...document.querySelectorAll('.blog-content h2[id], .blog-content h3[id]')];
+    const tocLinks = [...document.querySelectorAll('.toc-link')];
+    const tocDots = [...document.querySelectorAll('.toc-dot')];
+    const tocShell = document.querySelector('.toc-shell');
+    const tocRail = document.querySelector('.toc-rail');
+
+    function setActiveSection(id) {
+      tocLinks.forEach((link) => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+      });
+      tocDots.forEach((dot) => {
+        dot.classList.toggle('active', dot.dataset.target === id);
+      });
+    }
+
+    function setTocOpen(isOpen) {
+      tocShell?.classList.toggle('open', isOpen);
+      tocRail?.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    tocRail?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      setTocOpen(!tocShell?.classList.contains('open'));
+    });
+
+    tocLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const id = link.getAttribute('href')?.replace('#', '');
+        if (id) {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.replaceState(null, '', `#${id}`);
+          setActiveSection(id);
+        }
+        setTocOpen(false);
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!tocShell?.contains(event.target)) {
+        setTocOpen(false);
+      }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible[0]) {
+        setActiveSection(visible[0].target.id);
+      }
+    }, {
+      rootMargin: '-18% 0px -68% 0px',
+      threshold: 0.01
+    });
+
+    sections.forEach((section) => observer.observe(section));
+    if (sections[0]) {
+      setActiveSection(sections[0].id);
+    }
+  </script>
+</body>
+</html>
