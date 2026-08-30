@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>From a YouTube Video to AI Engineer: My Coding Journey | Opai Elsheikh</title>
+  <meta name="description" content="How a YouTube video, a no-code game, Discord bots, UCD, and an NLP internship became my path into AI engineering.">
+
+  <meta property="og:title" content="From a YouTube Video to AI Engineer: My Coding Journey">
+  <meta property="og:description" content="How a YouTube video, a no-code game, Discord bots, UCD, and an NLP internship became my path into AI engineering.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://opaielsheikh.github.io/blogs/coding-journey/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&amp;display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #fbf9f5;
+      --text-main: #1b1b1b;
+      --text-muted: #646059;
+      --border-color: #eae6df;
+      --accent-color: #c25936;
+      --accent-soft: #f2e6dc;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 4.5rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .toc-shell {
+      position: fixed;
+      top: 50%;
+      left: calc((100vw - 760px) / 2 - 350px);
+      z-index: 10;
+      transform: translateY(-50%);
+    }
+
+    .toc-panel {
+      position: absolute;
+      top: 50%;
+      left: 3rem;
+      width: 290px;
+      max-height: calc(100vh - 7rem);
+      overflow: auto;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(27, 27, 27, 0.06);
+      padding: 1.1rem 1.15rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%) translateX(-8px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-shell.open .toc-panel {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .toc-label {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-main);
+      margin-bottom: 1.05rem;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .toc-link {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      line-height: 1.3;
+      color: #8e8a84;
+      text-decoration: none;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-link:hover,
+    .toc-link.active {
+      color: var(--text-main);
+    }
+
+    .toc-link.active {
+      transform: translateX(3px);
+    }
+
+    .toc-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.48rem;
+      width: 38px;
+      padding: 0.95rem 0.5rem;
+      background: rgba(251, 249, 245, 0.78);
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .toc-rail:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 4px;
+    }
+
+    .toc-dot {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: #aaa6a0;
+      border-radius: 999px;
+      transition: width 0.15s ease, background 0.15s ease;
+    }
+
+    .toc-dot.active {
+      width: 22px;
+      background: var(--text-main);
+    }
+
+    .nav-back {
+      margin-bottom: 3.5rem;
+    }
+
+    .nav-back a,
+    .bottom-nav a,
+    .blog-content a {
+      color: var(--accent-color);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #e2a691;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .nav-back a,
+    footer.social-links a {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .nav-back a:hover,
+    .bottom-nav a:hover,
+    .blog-content a:hover,
+    footer.social-links a:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    .blog-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .blog-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-color);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+
+    .blog-title {
+      font-family: var(--font-serif);
+      font-size: 3.1rem;
+      font-weight: 500;
+      line-height: 1.08;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      letter-spacing: 0;
+    }
+
+    .blog-subtitle {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-style: italic;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 1.5rem;
+    }
+
+    .blog-meta {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #9a948a;
+      letter-spacing: 0.02em;
+    }
+
+    .blog-content {
+      font-family: var(--font-serif);
+      font-size: 1.22rem;
+      line-height: 1.68;
+      color: #333;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    .blog-content p {
+      margin-bottom: 1.35rem;
+    }
+
+    .blog-content h2 {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 500;
+      line-height: 1.2;
+      color: var(--text-main);
+      margin: 3rem 0 1rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .blog-content em {
+      color: var(--text-main);
+    }
+
+    .note-box {
+      border-left: 3px solid var(--accent-color);
+      background: var(--accent-soft);
+      padding: 1rem 1.1rem;
+      margin: 1.8rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #3d3831;
+    }
+
+    .bottom-nav {
+      margin-top: 3.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .bottom-nav a {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+
+    footer.social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 2.5rem 1.25rem;
+      }
+
+      .blog-title {
+        font-size: 2.2rem;
+      }
+
+      .blog-subtitle {
+        font-size: 1.15rem;
+      }
+
+      .blog-content {
+        font-size: 1.08rem;
+      }
+    }
+
+    @media (max-width: 1460px) {
+      .toc-shell {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toc-shell">
+    <button class="toc-rail" type="button" aria-label="Toggle contents" aria-expanded="false">
+      <span class="toc-dot" data-target="the-first-app"></span>
+      <span class="toc-dot" data-target="finding-real-code"></span>
+      <span class="toc-dot" data-target="leaving-cert"></span>
+      <span class="toc-dot" data-target="giving-back"></span>
+      <span class="toc-dot" data-target="internships"></span>
+      <span class="toc-dot" data-target="falling-into-nlp"></span>
+      <span class="toc-dot" data-target="where-i-am-now"></span>
+    </button>
+
+    <aside class="toc-panel" aria-label="Table of contents">
+      <p class="toc-label">Contents</p>
+      <nav class="toc-list">
+        <a class="toc-link" href="#the-first-app">The First App</a>
+        <a class="toc-link" href="#finding-real-code">Finding Real Code</a>
+        <a class="toc-link" href="#leaving-cert">The Leaving Cert Fork</a>
+        <a class="toc-link" href="#giving-back">Giving Back</a>
+        <a class="toc-link" href="#internships">Internships</a>
+        <a class="toc-link" href="#falling-into-nlp">Falling Into NLP</a>
+        <a class="toc-link" href="#where-i-am-now">Where I Am Now</a>
+      </nav>
+    </aside>
+  </div>
+
+  <main class="container">
+    <nav class="nav-back">
+      <a href="/">&larr; Opai Elsheikh</a>
+    </nav>
+
+    <article>
+      <header class="blog-header">
+        <p class="blog-kicker">Personal</p>
+        <h1 class="blog-title">From a YouTube Video to AI Engineer: My Coding Journey</h1>
+        <p class="blog-subtitle">I did not start with a grand plan. It was curiosity, one video and one project at a time.</p>
+        <p class="blog-meta">August 31, 2026 &middot; Opai Elsheikh</p>
+      </header>
+
+      <div class="blog-content">
+        <p>
+          I didn't start coding because I loved computers, or because I had some grand plan to become an engineer. I started because I watched a YouTube video about a guy who built a game app, got millions of users worldwide, and hadn't written a single line of code to do it. I was in 6th class, not even in secondary school yet, and I thought: <em>I want to do that.</em>
+        </p>
+
+        <h2 id="the-first-app">The First App</h2>
+        <p>
+          I convinced my parents to let me use their laptop and their card to sign up for a no-code app-building tool. With it, I built a Flappy Bird clone, except instead of a bird, it was a spaceship dodging obstacles. Looking back, I have no idea what was going through my head choosing that theme, but at the time I thought it was the coolest thing I'd ever made.
+        </p>
+
+        <p>
+          I actually published it on the Play Store, then got my friends to download it on their Android phones. I'd noticed the Play Store was cheaper to publish on than the App Store. Still is, actually.
+        </p>
+
+        <h2 id="finding-real-code">Finding Real Code</h2>
+        <p>
+          The real turning point came in secondary school, before the Junior Cert. I stumbled on a free beginner Python course on YouTube, and something about it just clicked. I followed the tutorial start to finish, genuinely curious for the first time about how software actually worked under the hood. I tried Java next and didn't take to it the same way, but the door was open now, and I wasn't going back.
+        </p>
+
+        <p>
+          A few years later, hacking culture caught my interest, so at 15 I bought an ethical hacking course on Udemy. I learned how to set up virtual machines, and got my first real look at the distinctions between black hat, white hat, and grey hat hacking. It was a different side of tech than app-building, and it pulled me in just as much.
+        </p>
+
+        <h2 id="leaving-cert">The Leaving Cert Fork in the Road</h2>
+        <p>
+          By 6th year, after the Leaving Cert, my plan on paper was dentistry. But things worked out differently. I got into UCD, University College Dublin, for a Bachelor's in Computer Science, and alhamdulillah, that's the path I ended up on.
+        </p>
+
+        <p>
+          Then COVID hit, and my entire first year of college happened online. Like a lot of people that year, I joined Discord for the first time. My class had set one up, around 30 of us, and I found the platform genuinely interesting. So I went looking into how Discord bots worked, since I'd started noticing them in nearly every server I joined.
+        </p>
+
+        <p>
+          I ended up building one for my class. It tracked assignment due dates and displayed them automatically, which helped a fair few people who were struggling to keep on top of deadlines during a pretty disorienting year. I also added some lighter features: dice rolls, role-tagging games, that kind of thing. It was a small project, but it was the first time I built something <em>for</em> other people rather than just for myself.
+        </p>
+
+        <p>
+          First and second year were also when the fundamentals really started stacking up: multiple programming languages, algorithms, and the underlying maths. It stopped being "messing around" and started being an actual skill set.
+        </p>
+
+        <h2 id="giving-back">Giving Back as a Demonstrator</h2>
+        <p>
+          By third year, UCD opened up applications for lab demonstrators, students who'd help run labs for modules they'd already taken. I signed up for three modules straight away. I genuinely wanted to give back what I'd learned to students going through what I'd gone through a year or two earlier. The pre-lab sessions especially turned out better than I expected, and it was a good reminder that understanding something well enough to explain it is a different skill from just knowing it.
+        </p>
+
+        <h2 id="internships">Internships: A Rejection, Then a Yes</h2>
+        <p>
+          Third year also meant internship season. I applied to Microsoft first, made it through the first round, and prepped hard for the second: LeetCode, day and night. In the interview, the coding questions went flawlessly. But in the behavioural round, I got asked something like "what's something that doesn't currently exist but that people would want." The interviewer gave an example about an app showing free parking spaces, and I just blanked. No idea why, but I couldn't pull an answer together in the moment. I didn't get the offer.
+        </p>
+
+        <p>
+          The following week, I applied to General Motors as a Software Engineer intern. That interview went well, and by the end of it, they offered me the role.
+        </p>
+
+        <h2 id="falling-into-nlp">Falling Into NLP by Accident</h2>
+        <p>
+          I started the internship expecting general software engineering work. Instead, I was placed on an NLP team working with LLMs, which, at the time, I'd never even heard of. There was no onboarding, no ramp-up period; I found out months later that other teams had gotten a full two-week training programme and mine hadn't.
+        </p>
+
+        <p>
+          Myself and two other interns were thrown straight into training an open-source LLM on legal documents. My specific task was to research and write a paper comparing different benchmarks and identifying which current LLMs performed best on which tasks. That work is what got me properly hooked on research. I loved the process of digging into what already existed and where the gaps were.
+        </p>
+
+        <p>
+          Alongside that, I worked on cleaning data: extracting and cropping text from documents that weren't always formatted cleanly, and looking into fine-tuning methods to push model performance further. It was messy, unglamorous work a lot of the time, but it's also where I learned the most.
+        </p>
+
+        <h2 id="where-i-am-now">Where I Am Now</h2>
+        <p>
+          After finishing my final year project, I moved into a startup. I'm currently working as an AI Software Engineer at Launchpulse.
+        </p>
+
+        <div class="note-box">
+          Looking back at all of it, the spaceship Flappy Bird clone, the Discord bot for a class of 30, blanking in a Microsoft interview, getting thrown into LLMs with zero warning, none of it was part of a plan.
+        </div>
+
+        <p>
+          It was curiosity, one YouTube video and one course at a time. But somehow it all added up to exactly where I wanted to be.
+        </p>
+      </div>
+    </article>
+
+    <div class="bottom-nav">
+      <a href="/blogs/">&larr; Back to blogs</a>
+    </div>
+
+    <footer class="social-links">
+      <a href="https://github.com/opaielsheikh" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/opai-elsheikh-0988181b9/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://x.com/opaisOfficial" target="_blank" rel="noopener">X</a>
+      <a href="https://www.goodreads.com/user/show/203802157-opai" target="_blank" rel="noopener">Goodreads</a>
+    </footer>
+  </main>
+
+  <script>
+    const sections = [...document.querySelectorAll('.blog-content h2[id]')];
+    const tocLinks = [...document.querySelectorAll('.toc-link')];
+    const tocDots = [...document.querySelectorAll('.toc-dot')];
+    const tocShell = document.querySelector('.toc-shell');
+    const tocRail = document.querySelector('.toc-rail');
+
+    function setActiveSection(id) {
+      tocLinks.forEach((link) => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+      });
+      tocDots.forEach((dot) => {
+        dot.classList.toggle('active', dot.dataset.target === id);
+      });
+    }
+
+    function setTocOpen(isOpen) {
+      tocShell?.classList.toggle('open', isOpen);
+      tocRail?.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    tocRail?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      setTocOpen(!tocShell?.classList.contains('open'));
+    });
+
+    tocLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const id = link.getAttribute('href')?.replace('#', '');
+        if (id) {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          history.replaceState(null, '', `#${id}`);
+          setActiveSection(id);
+        }
+        setTocOpen(false);
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!tocShell?.contains(event.target)) {
+        setTocOpen(false);
+      }
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+
+      if (visible?.target?.id) {
+        setActiveSection(visible.target.id);
+      }
+    }, {
+      rootMargin: '-18% 0px -70% 0px',
+      threshold: 0
+    });
+
+    sections.forEach((section) => observer.observe(section));
+    if (sections[0]) {
+      setActiveSection(sections[0].id);
+    }
+  </script>
+</body>
+</html>
