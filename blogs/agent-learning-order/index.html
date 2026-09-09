@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Same evidence, different memory: an agent experiment on a MacBook | Opai Elsheikh</title>
+<meta name="description" content="Two local models, 270 runs, and a controlled look at how report order changes agent memory.">
+<link rel="canonical" href="https://opaielsheikh.github.io/blogs/agent-learning-order/">
+<meta property="og:title" content="Same evidence, different memory: an agent experiment on a MacBook">
+<meta property="og:description" content="Two local models, 270 runs, and a controlled look at how report order changes agent memory.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://opaielsheikh.github.io/blogs/agent-learning-order/">
+<meta property="og:image" content="https://opaielsheikh.github.io/assets/agent-learning-order/orders.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&amp;display=swap" rel="stylesheet">
+<style>
+    :root {
+      --bg-color: #fbf9f5;
+      --text-main: #1b1b1b;
+      --text-muted: #646059;
+      --border-color: #eae6df;
+      --accent-color: #c25936;
+      --accent-soft: #f2e6dc;
+      --code-bg: #f3eee7;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 4.5rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .toc-shell {
+      position: fixed;
+      top: 50%;
+      left: 1.45rem;
+      z-index: 10;
+      transform: translateY(-50%);
+    }
+
+    .toc-panel {
+      position: absolute;
+      top: 50%;
+      left: 3rem;
+      width: 290px;
+      max-height: calc(100vh - 7rem);
+      overflow: auto;
+      background: rgba(251, 249, 245, 0.96);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(27, 27, 27, 0.06);
+      padding: 1.1rem 1.15rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%) translateX(-8px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-shell.open .toc-panel {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .toc-panel.dismissed {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%) translateX(-8px);
+    }
+
+    .toc-label {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-main);
+      margin-bottom: 1.05rem;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .toc-link {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      line-height: 1.3;
+      color: #8e8a84;
+      text-decoration: none;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-link.sub {
+      padding-left: 1.15rem;
+      font-size: 0.78rem;
+    }
+
+    .toc-link:hover,
+    .toc-link.active {
+      color: var(--text-main);
+    }
+
+    .toc-link.active {
+      transform: translateX(3px);
+    }
+
+    .toc-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.48rem;
+      width: 38px;
+      padding: 0.95rem 0.5rem;
+      background: rgba(251, 249, 245, 0.78);
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .toc-rail:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 4px;
+    }
+
+    .toc-dot {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: #aaa6a0;
+      border-radius: 999px;
+      transition: width 0.15s ease, background 0.15s ease;
+    }
+
+    .toc-dot.sub {
+      width: 11px;
+      margin-left: 3px;
+    }
+
+    .toc-dot.active,
+    .toc-dot:hover {
+      width: 22px;
+      background: var(--text-main);
+    }
+
+    .nav-back {
+      margin-bottom: 3.5rem;
+    }
+
+    .nav-back a,
+    .bottom-nav a,
+    .blog-content a {
+      color: var(--accent-color);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #e2a691;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .nav-back a,
+    footer.social-links a {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .nav-back a:hover,
+    .bottom-nav a:hover,
+    .blog-content a:hover,
+    footer.social-links a:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    .blog-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .blog-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-color);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+
+    .blog-title {
+      font-family: var(--font-serif);
+      font-size: 3.1rem;
+      font-weight: 500;
+      line-height: 1.1;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .blog-subtitle {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-style: italic;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 1.5rem;
+    }
+
+    .blog-meta {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #9a948a;
+      letter-spacing: 0.02em;
+    }
+
+    .blog-content {
+      font-family: var(--font-serif);
+      font-size: 1.22rem;
+      line-height: 1.68;
+      color: #333;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    .blog-content p {
+      margin-bottom: 1.35rem;
+    }
+
+    .blog-content h2 {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 500;
+      line-height: 1.2;
+      color: var(--text-main);
+      margin: 3rem 0 1rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .blog-content h3 {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text-main);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 2.2rem 0 0.8rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .blog-content ul,
+    .blog-content ol {
+      margin: 0 0 1.5rem 1.4rem;
+      padding-left: 0.6rem;
+    }
+
+    .blog-content li {
+      margin-bottom: 0.65rem;
+    }
+
+    .blog-content code {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.08rem 0.28rem;
+    }
+
+    .code-block {
+      background: #171614;
+      color: #f3eee7;
+      border-radius: 8px;
+      border: 1px solid #2a2824;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      margin: 1.4rem 0 1.8rem;
+      overflow-x: auto;
+      padding: 1rem;
+      white-space: pre;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      font-size: inherit;
+      padding: 0;
+    }
+
+    .code-caption {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin: -0.9rem 0 1.6rem;
+    }
+
+    .note-box {
+      border-left: 3px solid var(--accent-color);
+      background: var(--accent-soft);
+      padding: 1rem 1.1rem;
+      margin: 1.8rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #3d3831;
+    }
+
+    .reading-list,
+    .score-table {
+      border-top: 1px solid var(--border-color);
+      margin: 1.4rem 0 2rem;
+    }
+
+    .reading-row,
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 1.2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .reading-row strong,
+    .score-row strong {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .reading-row span,
+    .score-row span {
+      color: var(--text-muted);
+    }
+
+    .formula {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.65;
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1.4rem 0 1.8rem;
+      overflow-x: auto;
+    }
+
+    blockquote {
+      border-left: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-style: italic;
+      margin: 1.8rem 0;
+      padding-left: 1.2rem;
+    }
+
+    .bottom-nav {
+      margin-top: 3.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .bottom-nav a {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+
+    footer.social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 2.5rem 1.25rem;
+      }
+      .blog-title {
+        font-size: 2.2rem;
+      }
+      .blog-subtitle {
+        font-size: 1.15rem;
+      }
+      .blog-content {
+        font-size: 1.08rem;
+      }
+      .reading-row,
+      .score-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .toc-shell {
+        display: none;
+      }
+    }
+
+    .blog-content img { display:block; width:100%; height:auto; margin:2rem 0; }
+    .blog-content a { overflow-wrap:anywhere; }
+    .table-scroll { overflow-x:auto; margin:1.5rem 0; border:1px solid var(--border-color); border-radius:6px; }
+    table { border-collapse:collapse; width:100%; font-family:var(--font-mono); font-size:.75rem; line-height:1.6; }
+    th, td { padding:.8rem; text-align:left; border-bottom:1px solid var(--border-color); min-width:100px; }
+    th { background:var(--accent-soft); }
+    .contents { margin:1.5rem 0 2rem; font-family:var(--font-mono); font-size:.8rem; }
+    .contents summary { cursor:pointer; color:var(--accent-color); padding:.5rem 0; }
+    .contents ol { margin:1rem 0 1rem 1.4rem; line-height:2; }
+    .project-actions { display:flex; flex-wrap:wrap; gap:1rem; margin:1.5rem 0; }
+    .project-actions a { padding:.65rem 1rem; border:1px solid var(--border-color); border-radius:5px; font-family:var(--font-mono); font-size:.8rem; }
+    .project-actions a:first-child { background:var(--accent-soft); }
+    :focus-visible { outline:2px solid var(--accent-color); outline-offset:4px; }
+    @media(max-width:600px) { .blog-title { font-size:2.3rem; } .blog-content { font-size:1.15rem; } body { padding:2rem 1rem; } }
+</style>
+<script> !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]); posthog.init('phc_ubg8MVtw9VDJRgwStmvjLVSa5Ym83y5BPpC3WVKMtEiN', { api_host: 'https://us.i.posthog.com', person_profiles: 'identified_only' })</script>
+</head><body><main class="container">
+<nav class="nav-back"><a href="/">&larr; Opai Elsheikh</a></nav>
+<article><header class="blog-header"><p class="blog-kicker">Agent memory · Research note</p>
+<h1 class="blog-title">Same evidence, different memory: an agent experiment on a MacBook</h1>
+<p class="blog-subtitle">Two local models, 270 runs, and a controlled look at how report order changes agent memory.</p>
+<p class="blog-meta"><time datetime="2026-09-09">September 9, 2026</time> &middot; Opai Elsheikh</p></header>
+<div class="blog-content"><p><a href="/projects/agent-learning-order/">Project overview</a> &middot; <a href="https://github.com/opaielsheikh/agent-learning-order">Code and raw results</a></p><details class="contents"><summary>In this article</summary><ol><li><a href="#what-happened">What happened</a></li><li><a href="#the-question">The question</a></li><li><a href="#what-is-fixed-and-what-changes">What is fixed, and what changes</a></li><li><a href="#five-conditions">Five conditions</a></li><li><a href="#scoring-and-uncertainty">Scoring and uncertainty</a></li><li><a href="#a-trace-you-can-inspect">A trace you can inspect</a></li><li><a href="#the-failed-setup-is-part-of-the-record">The failed setup is part of the record</a></li><li><a href="#a-separate-formatting-sensitivity-check">A separate formatting sensitivity check</a></li><li><a href="#what-this-contributes">What this contributes</a></li><li><a href="#reproduce-it">Reproduce it</a></li></ol></details><p>An agent can collect the right evidence and still write an unreliable lesson. I built a small experiment to ask whether the order in which independent reports arrive changes the procedural memory an agent keeps—and the decisions it makes later.</p>
+<p>The experiment runs two local language models through every ordering of the same reports. It publishes the complete transcripts, including failures, and uses executable checks instead of an LLM judge. It is an agent-memory evaluation with frozen model weights, not a reinforcement-learning training result.</p>
+<h2 id="what-happened">What happened</h2>
+<p>The clearest result is on the 7B record-handling fixture: incremental memory accuracy averaged <strong>56.25%</strong>, compared with <strong>100%</strong> for every arrival-batched run. The six incremental schedule means ranged from <strong>0% to 100%</strong>. All 7B outputs passed the required format, so this difference survives the strict interface check.</p>
+<p>That pattern does not generalize cleanly across this pilot. The 7B retry fixture was perfect with every memory condition, regardless of order. Cache performance was weak even with all raw evidence: 25%, below the 50% no-memory baseline. The 3B model had 74 invalid outputs out of 135 runs (54.8%), which makes its strict accuracy highly sensitive to the output interface.</p>
+<p>These are the complete primary mean accuracies, with invalid output scored as zero:</p>
+<div class="table-scroll" role="region" aria-label="Research results or methods table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Family</th>
+<th style="text-align:right">Incremental</th>
+<th style="text-align:right">Batch / arrival</th>
+<th style="text-align:right">Batch / canonical</th>
+<th style="text-align:right">Full evidence</th>
+<th style="text-align:right">No memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>community/Qwen2.5</td>
+<td>records</td>
+<td style="text-align:right">25.7%</td>
+<td style="text-align:right">32.6%</td>
+<td style="text-align:right">58.3%</td>
+<td style="text-align:right">87.5%</td>
+<td style="text-align:right">25.0%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>cache</td>
+<td style="text-align:right">20.1%</td>
+<td style="text-align:right">19.4%</td>
+<td style="text-align:right">8.3%</td>
+<td style="text-align:right">0.0%</td>
+<td style="text-align:right">50.0%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>retry</td>
+<td style="text-align:right">24.3%</td>
+<td style="text-align:right">11.1%</td>
+<td style="text-align:right">0.0%</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">87.5%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>records</td>
+<td style="text-align:right">56.2%</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">37.5%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>cache</td>
+<td style="text-align:right">31.9%</td>
+<td style="text-align:right">34.7%</td>
+<td style="text-align:right">41.7%</td>
+<td style="text-align:right">25.0%</td>
+<td style="text-align:right">50.0%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>retry</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">100.0%</td>
+<td style="text-align:right">50.0%</td>
+</tr>
+</tbody>
+</table></div>
+<p><img src="/assets/agent-learning-order/accuracy.png" alt="Strict accuracy by family and condition" /></p>
+<p>Incremental and arrival-batch means each average 18 runs per family; other cells average three. Both main matrices completed without infrastructure errors or memory token-cap endings. The scores combine memory quality, executor reasoning, and interface compliance; they are not a pure measurement of stored knowledge.</p>
+<p><img src="/assets/agent-learning-order/orders.png" alt="Every incremental delivery order" /></p>
+<p>For the 7B records fixture, ACB scored zero in all three runs; CAB and CBA scored perfectly in all three. Across-order correctness disagreement was 57.5%, compared with 15.3% across seeds within an order. The analogous cache figures were 27.2% and 23.6%, a much less persuasive separation.</p>
+<p>The full incremental comparison is:</p>
+<div class="table-scroll" role="region" aria-label="Research results or methods table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Family</th>
+<th style="text-align:right">Range of order means (pp)</th>
+<th style="text-align:right">Within-order disagreement</th>
+<th style="text-align:right">Across-order disagreement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>community/Qwen2.5</td>
+<td>records</td>
+<td style="text-align:right">58.3</td>
+<td style="text-align:right">20.8%</td>
+<td style="text-align:right">36.9%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>cache</td>
+<td style="text-align:right">37.5</td>
+<td style="text-align:right">22.2%</td>
+<td style="text-align:right">29.7%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>retry</td>
+<td style="text-align:right">58.3</td>
+<td style="text-align:right">38.9%</td>
+<td style="text-align:right">41.4%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>records</td>
+<td style="text-align:right">100.0</td>
+<td style="text-align:right">15.3%</td>
+<td style="text-align:right">57.5%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>cache</td>
+<td style="text-align:right">16.7</td>
+<td style="text-align:right">23.6%</td>
+<td style="text-align:right">27.2%</td>
+</tr>
+<tr>
+<td>community/Qwen2.5</td>
+<td>retry</td>
+<td style="text-align:right">0.0</td>
+<td style="text-align:right">0.0%</td>
+<td style="text-align:right">0.0%</td>
+</tr>
+</tbody>
+</table></div>
+<p>The initial protocol required an effect beyond repeat noise on at least two families before expansion. This release does not establish a convincing, format-robust case for that gate: the strongest interpretable signal is one family, the cache reference is weak, and the smaller model has substantial interface failures. We publish the pilot and its limitations rather than treat it as confirmation of a general weakness.</p>
+<p>Batching is also a different computation: it sees all raw reports at once and uses one memory update instead of three. Its success on 7B records does not identify whether avoiding repeated compression, avoiding intermediate mistakes, or another prompt difference caused the gain. It is not evidence that waiting is universally optimal.</p>
+<h2 id="the-question">The question</h2>
+<p>Imagine three workers investigate the same service. Their reports describe a static system, were produced independently, and have the same source timestamp. The learner receives each report and rewrites a short operating manual. Once all reports have arrived, a fresh executor uses only that manual to solve new input instances.</p>
+<p>Should receiving A, then B, then C produce the same useful lesson as receiving C, then B, then A? The model receives an explicit reminder that arrival position does not imply recency or authority. No evidence is missing at evaluation time.</p>
+<p>This isolates a narrow pipeline behavior. It does not simulate real workers, network delays, or a production agent. Reordering changes the prompt history and the stochastic path through successive updates. The experiment cannot separately identify every internal mechanism behind a changed answer.</p>
+<p>Three fixed reports → Six delivery orders → Update procedural memory → Fresh executor → Executable scorer</p>
+<h2 id="what-is-fixed-and-what-changes">What is fixed, and what changes</h2>
+<p>There are three authored service families. In each, reports A and B contain narrow valid observations followed by overgeneralized suggestions. C supplies discriminating tests. This is a deliberately diagnostic pattern, not a random sample of natural agent experience.</p>
+<div class="table-scroll" role="region" aria-label="Research results or methods table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Rule the evidence supports</th>
+<th>Executor action space</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Records</td>
+<td>Preserve duplicates for <code>nivo</code>; deduplicate for <code>pavo</code>.</td>
+<td><code>keep_all</code>, <code>unique</code></td>
+</tr>
+<tr>
+<td>Cache</td>
+<td>For <code>nivo</code>, use version equality; for <code>pavo</code>, use TTL validity.</td>
+<td><code>serve</code>, <code>refresh</code></td>
+</tr>
+<tr>
+<td>Retry</td>
+<td>Retry E17 with the same key; stop and report E23.</td>
+<td><code>retry_same_key</code>, <code>stop_and_report</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>All six permutations contain identical report content, IDs, and source timestamps. Every run starts with empty memory. The updater sees neither evaluation inputs nor gold outputs. The executor sees the final memory and eight new inputs, but no earlier conversation or evaluation feedback. Gold outputs are used only by the deterministic scorer.</p>
+<p>The inputs are held out from memory construction; the task families are not held out. Across the study there are <strong>24 fixed input instances</strong>, repeatedly evaluated. The total decision count must not be read as thousands of independent test examples.</p>
+<h2 id="five-conditions">Five conditions</h2>
+<div class="table-scroll" role="region" aria-label="Research results or methods table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Memory construction</th>
+<th style="text-align:right">Orders tested</th>
+<th style="text-align:right">Calls per run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Incremental (<code>online</code>)</td>
+<td>Rewrite memory after each report, retaining only the previous summary.</td>
+<td style="text-align:right">6</td>
+<td style="text-align:right">3 updates + 1 executor</td>
+</tr>
+<tr>
+<td>Batch / arrival</td>
+<td>Summarize all reports once in delivery order.</td>
+<td style="text-align:right">6</td>
+<td style="text-align:right">1 update + 1 executor</td>
+</tr>
+<tr>
+<td>Batch / canonical</td>
+<td>Sort reports by ID into ABC, then summarize once.</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1 update + 1 executor</td>
+</tr>
+<tr>
+<td>Full evidence</td>
+<td>Give the executor all raw reports in canonical order.</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1 executor</td>
+</tr>
+<tr>
+<td>No memory</td>
+<td>Give the executor the service description and inputs without reports.</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1 executor</td>
+</tr>
+</tbody>
+</table></div>
+<p>Canonical ordering removes delivery-order variation from its input by construction. It can still vary across sampling seeds and can be consistently wrong. Full evidence is a reference condition, not an oracle.</p>
+<p>Within each condition, the memory updater uses seeds 101, 202, and 303, temperature 0.3, and top-p 0.95. Incremental update position adds 0, 1, or 2 to the run seed. Memory is requested in at most 100 words with a 256-token generation cap. The executor uses greedy decoding, seed 999, and a 256-token cap. It returns one JSON object for all eight cases, so these decisions share context.</p>
+<p>This gives <strong>135 runs and 360 model calls per model</strong>: 54 incremental runs, 54 arrival-batch runs, and nine runs for each remaining condition. We ran the matrix for Qwen2.5 3B and 7B using community 4-bit MLX conversions. The models share a family; this is a size comparison, not independent cross-family replication.</p>
+<p>For full-evidence and no-memory conditions, changing the nominal memory seed changes nothing in the executor input or decoding. Their three repeats are redundant consistency checks and are not extra independent evidence.</p>
+<h2 id="scoring-and-uncertainty">Scoring and uncertainty</h2>
+<p>The primary interface requires exactly the expected case IDs and exactly the allowed action strings. A malformed response receives zero for the whole eight-case batch and is separately marked <code>invalid_output</code>. Infrastructure failures are separate and never scored as model mistakes.</p>
+<p>For each family and condition, we report mean strict accuracy. For the two conditions with six schedules, we report the range between the largest and smallest schedule mean, after averaging three seeds per schedule.</p>
+<p>We also compare <strong>case-correctness disagreement</strong> across seeds within the same order with disagreement across orders at a fixed seed. This counts changes between pass and fail; it does not count mere differences in memory wording or all possible action disagreements. Three seeds provide only a rough descriptive check. Neither these disagreements nor a maximum-minus-minimum range are statistical evidence of a general effect by themselves.</p>
+<p>There are no population confidence intervals or significance claims. Three related authored fixtures cannot support them.</p>
+<h2 id="a-trace-you-can-inspect">A trace you can inspect</h2>
+<p>In the 7B incremental condition with seed 303, delivery order BAC produced this final memory:</p>
+<blockquote>
+<p>keep_all for namespace pavo.
+unique for namespace nivo.</p>
+</blockquote>
+<p>Both bindings are reversed. The fresh executor scored <strong>0/8</strong>. With the same seed and report set, CAB produced:</p>
+<blockquote>
+<p>If namespace is &quot;nivo&quot;, keep all records: keep_all. If namespace is &quot;pavo&quot;, keep unique records: unique. Order is preserved in both cases. Deduplicate only for namespace &quot;pavo&quot;.</p>
+</blockquote>
+<p>That executor scored <strong>8/8</strong>. Both outputs met the strict JSON interface, so this pair is not a format-scoring artifact. The memories themselves show a meaningful rule difference, although this example does not isolate the internal mechanism causing it.</p>
+<p>Read the complete <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/results/qwen7b/runs/records--online--102--303.json">BAC trace</a> and <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/results/qwen7b/runs/records--online--201--303.json">CAB trace</a>, including every intermediate memory. This pair was selected after inspecting outputs to illustrate a failure; it is not an independent experiment or a substitute for the complete matrix.</p>
+<h2 id="the-failed-setup-is-part-of-the-record">The failed setup is part of the record</h2>
+<p>The initial prompt used a JSON envelope. The 3B model often copied that structure while updating memory and exhausted the original 192-token cap. We stopped the first matrix after 31 completed runs. A 7B setup smoke test also returned disallowed action names.</p>
+<p>We then changed the interface to prose, repeated the permitted action names, and raised the memory cap to 256 tokens. We kept fixtures, report content, schedules, scoring, and seeds fixed. The revised interface had a smoke test before the two complete runs.</p>
+<p>All setup transcripts remain in <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/results/setup/README.md">results/setup</a>, excluded from the main tables. The amendment was made after inspecting setup outputs. This is openly exploratory work, not a preregistered confirmation or an untouched test set.</p>
+<h2 id="a-separate-formatting-sensitivity-check">A separate formatting sensitivity check</h2>
+<p>Many invalid 3B responses were JSON lists of action strings rather than objects keyed by case ID. After observing this, we added a <strong>post-hoc</strong> analysis that accepts only exact-length lists containing permitted actions and maps them to input presentation order. It does not fill omissions, rename actions, or use gold answers to choose a mapping. The primary scores remain unchanged.</p>
+<p>This recovers 51 of the 74 invalid 3B responses; 23 remain invalid. Its incremental means change from 25.7% to 31.2% for records, 20.1% to 36.1% for cache, and 24.3% to 44.4% for retry. The 7B matrix is unchanged because all 135 original outputs were valid.</p>
+<p>The sensitivity check shows that format compliance materially affects the 3B results. It does not validate a new scoring rule after the fact or remove all executor-related confounds. Both versions are published in <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/results/summary.json">primary summaries</a> and <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/results/format-sensitivity.json">format sensitivity</a>, with the <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/scripts/format_sensitivity.py">exact secondary rule</a>.</p>
+<h2 id="what-this-contributes">What this contributes</h2>
+<p>The useful artifact is a small experiment that someone else can inspect and extend: an explicit evidence-order intervention, fresh downstream execution, all permutations, repeat seeds, immutable model revisions, complete model messages, and reproducible score audits.</p>
+<p>Order-sensitive memory is already a research topic. <a href="https://arxiv.org/html/2604.01707">Memory in the LLM Era</a> studies supporting-evidence position and memory update behavior. <a href="https://arxiv.org/abs/2602.05965">Learning to Share</a> learns shared-memory admission across parallel teams, while <a href="https://arxiv.org/abs/2606.24428">Execute-Distill-Verify</a> separates experience construction and verification. This note does not claim to discover those ideas or to be the first experiment of its kind. <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/RELATED_WORK.md">Related-work notes</a> explain the overlap.</p>
+<p>The next defensible experiment would improve the output interface on a separate development set, freeze it, and repeat on many independently generated service rules and natural worker reports. A stronger executor or constrained decoding would help distinguish memory-content failures from formatting failures. A separate source-update control should verify that the system can still respond appropriately to genuinely newer evidence.</p>
+<p>Only after that would a learned commit/wait/revise policy make sense as an RL extension. It would need a real delay budget, a training/evaluation split, and comparisons with simple waiting and verification baselines. This release contains no trained policy and makes no latency-improvement claim.</p>
+<h2 id="reproduce-it">Reproduce it</h2>
+<p>No paid inference service was used. The runs used <a href="https://github.com/ml-explore/mlx-lm">MLX-LM</a> on an Apple M4 Pro MacBook with 24 GiB unified memory. Model downloads, local electricity, storage, and time still have costs. The model weights remain subject to their upstream licenses and are not included in this repository.</p>
+<p>The two complete main matrices generated 31,789 tokens from 260,433 prompt tokens across 720 calls. Summed model-generation time was 16.95 minutes (3B: 5.51; 7B: 11.44). These timings exclude model loading/downloads, the archived setup, analysis, and writing. They are observations on this machine, not a latency benchmark.</p>
+<p>To audit the committed results on an ordinary Python installation:</p>
+<pre class="code-block"><code class="language-sh">python3 -m venv .venv
+.venv/bin/pip install -e .
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python scripts/analyze.py --check-only results/qwen3b results/qwen7b
+</code></pre>
+<p>The audit verifies matrix coverage, source and fixture hashes, actual prompt construction, parser behavior, and saved scores. It does not prove transcript provenance or replace rerunning inference. <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/REPRODUCING.md">REPRODUCING.md</a> gives pinned-model commands and explains hardware nondeterminism. <a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/DATA_CARD.md">DATA_CARD.md</a> documents the authored data and evaluation boundaries.</p>
+<p>Codex assisted with the study design, code, execution, analysis, and writing. All claims should be evaluated against the raw artifacts and their limitations.</p>
+</div></article>
+<div class="bottom-nav"><a href="/blogs/">&larr; All articles</a> &middot; <a href="/">Home</a></div>
+<footer class="social-links">
+      <a href="https://github.com/opaielsheikh" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/opai-elsheikh-0988181b9/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://x.com/opaisOfficial" target="_blank" rel="noopener">X</a>
+      <a href="https://www.goodreads.com/user/show/203802157-opai" target="_blank" rel="noopener">Goodreads</a>
+    </footer></main></body></html>

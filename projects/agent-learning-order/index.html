@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Learning Order | Opai Elsheikh</title>
+<meta name="description" content="An inspectable experiment on evidence delivery order and procedural memory.">
+<link rel="canonical" href="https://opaielsheikh.github.io/projects/agent-learning-order/">
+<meta property="og:title" content="Agent Learning Order">
+<meta property="og:description" content="An inspectable experiment on evidence delivery order and procedural memory.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://opaielsheikh.github.io/projects/agent-learning-order/">
+<meta property="og:image" content="https://opaielsheikh.github.io/assets/agent-learning-order/orders.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&amp;display=swap" rel="stylesheet">
+<style>
+    :root {
+      --bg-color: #fbf9f5;
+      --text-main: #1b1b1b;
+      --text-muted: #646059;
+      --border-color: #eae6df;
+      --accent-color: #c25936;
+      --accent-soft: #f2e6dc;
+      --code-bg: #f3eee7;
+      --font-serif: 'Newsreader', Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 4.5rem 1.5rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scroll-behavior: smooth;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .toc-shell {
+      position: fixed;
+      top: 50%;
+      left: 1.45rem;
+      z-index: 10;
+      transform: translateY(-50%);
+    }
+
+    .toc-panel {
+      position: absolute;
+      top: 50%;
+      left: 3rem;
+      width: 290px;
+      max-height: calc(100vh - 7rem);
+      overflow: auto;
+      background: rgba(251, 249, 245, 0.96);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(27, 27, 27, 0.06);
+      padding: 1.1rem 1.15rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%) translateX(-8px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-shell.open .toc-panel {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .toc-panel.dismissed {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-50%) translateX(-8px);
+    }
+
+    .toc-label {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-main);
+      margin-bottom: 1.05rem;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .toc-link {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      line-height: 1.3;
+      color: #8e8a84;
+      text-decoration: none;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+
+    .toc-link.sub {
+      padding-left: 1.15rem;
+      font-size: 0.78rem;
+    }
+
+    .toc-link:hover,
+    .toc-link.active {
+      color: var(--text-main);
+    }
+
+    .toc-link.active {
+      transform: translateX(3px);
+    }
+
+    .toc-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.48rem;
+      width: 38px;
+      padding: 0.95rem 0.5rem;
+      background: rgba(251, 249, 245, 0.78);
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .toc-rail:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 4px;
+    }
+
+    .toc-dot {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: #aaa6a0;
+      border-radius: 999px;
+      transition: width 0.15s ease, background 0.15s ease;
+    }
+
+    .toc-dot.sub {
+      width: 11px;
+      margin-left: 3px;
+    }
+
+    .toc-dot.active,
+    .toc-dot:hover {
+      width: 22px;
+      background: var(--text-main);
+    }
+
+    .nav-back {
+      margin-bottom: 3.5rem;
+    }
+
+    .nav-back a,
+    .bottom-nav a,
+    .blog-content a {
+      color: var(--accent-color);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-color: #e2a691;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+
+    .nav-back a,
+    footer.social-links a {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .nav-back a:hover,
+    .bottom-nav a:hover,
+    .blog-content a:hover,
+    footer.social-links a:hover {
+      color: var(--text-main);
+      text-decoration-color: var(--text-main);
+    }
+
+    .blog-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .blog-kicker {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent-color);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+
+    .blog-title {
+      font-family: var(--font-serif);
+      font-size: 3.1rem;
+      font-weight: 500;
+      line-height: 1.1;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .blog-subtitle {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-style: italic;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 1.5rem;
+    }
+
+    .blog-meta {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #9a948a;
+      letter-spacing: 0.02em;
+    }
+
+    .blog-content {
+      font-family: var(--font-serif);
+      font-size: 1.22rem;
+      line-height: 1.68;
+      color: #333;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    .blog-content p {
+      margin-bottom: 1.35rem;
+    }
+
+    .blog-content h2 {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 500;
+      line-height: 1.2;
+      color: var(--text-main);
+      margin: 3rem 0 1rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .blog-content h3 {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text-main);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 2.2rem 0 0.8rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .blog-content ul,
+    .blog-content ol {
+      margin: 0 0 1.5rem 1.4rem;
+      padding-left: 0.6rem;
+    }
+
+    .blog-content li {
+      margin-bottom: 0.65rem;
+    }
+
+    .blog-content code {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.08rem 0.28rem;
+    }
+
+    .code-block {
+      background: #171614;
+      color: #f3eee7;
+      border-radius: 8px;
+      border: 1px solid #2a2824;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      margin: 1.4rem 0 1.8rem;
+      overflow-x: auto;
+      padding: 1rem;
+      white-space: pre;
+    }
+
+    .code-block code {
+      display: block;
+      background: transparent;
+      border: 0;
+      color: inherit;
+      font-size: inherit;
+      padding: 0;
+    }
+
+    .code-caption {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin: -0.9rem 0 1.6rem;
+    }
+
+    .note-box {
+      border-left: 3px solid var(--accent-color);
+      background: var(--accent-soft);
+      padding: 1rem 1.1rem;
+      margin: 1.8rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #3d3831;
+    }
+
+    .reading-list,
+    .score-table {
+      border-top: 1px solid var(--border-color);
+      margin: 1.4rem 0 2rem;
+    }
+
+    .reading-row,
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 1.2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .reading-row strong,
+    .score-row strong {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .reading-row span,
+    .score-row span {
+      color: var(--text-muted);
+    }
+
+    .formula {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      line-height: 1.65;
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1.4rem 0 1.8rem;
+      overflow-x: auto;
+    }
+
+    blockquote {
+      border-left: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-style: italic;
+      margin: 1.8rem 0;
+      padding-left: 1.2rem;
+    }
+
+    .bottom-nav {
+      margin-top: 3.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .bottom-nav a {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+
+    footer.social-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 2.5rem 1.25rem;
+      }
+      .blog-title {
+        font-size: 2.2rem;
+      }
+      .blog-subtitle {
+        font-size: 1.15rem;
+      }
+      .blog-content {
+        font-size: 1.08rem;
+      }
+      .reading-row,
+      .score-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .toc-shell {
+        display: none;
+      }
+    }
+
+    .blog-content img { display:block; width:100%; height:auto; margin:2rem 0; }
+    .blog-content a { overflow-wrap:anywhere; }
+    .table-scroll { overflow-x:auto; margin:1.5rem 0; border:1px solid var(--border-color); border-radius:6px; }
+    table { border-collapse:collapse; width:100%; font-family:var(--font-mono); font-size:.75rem; line-height:1.6; }
+    th, td { padding:.8rem; text-align:left; border-bottom:1px solid var(--border-color); min-width:100px; }
+    th { background:var(--accent-soft); }
+    .contents { margin:1.5rem 0 2rem; font-family:var(--font-mono); font-size:.8rem; }
+    .contents summary { cursor:pointer; color:var(--accent-color); padding:.5rem 0; }
+    .contents ol { margin:1rem 0 1rem 1.4rem; line-height:2; }
+    .project-actions { display:flex; flex-wrap:wrap; gap:1rem; margin:1.5rem 0; }
+    .project-actions a { padding:.65rem 1rem; border:1px solid var(--border-color); border-radius:5px; font-family:var(--font-mono); font-size:.8rem; }
+    .project-actions a:first-child { background:var(--accent-soft); }
+    :focus-visible { outline:2px solid var(--accent-color); outline-offset:4px; }
+    @media(max-width:600px) { .blog-title { font-size:2.3rem; } .blog-content { font-size:1.15rem; } body { padding:2rem 1rem; } }
+</style>
+<script> !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]); posthog.init('phc_ubg8MVtw9VDJRgwStmvjLVSa5Ym83y5BPpC3WVKMtEiN', { api_host: 'https://us.i.posthog.com', person_profiles: 'identified_only' })</script>
+</head><body><main class="container">
+<nav class="nav-back"><a href="/">&larr; Opai Elsheikh</a></nav>
+<article><header class="blog-header"><p class="blog-kicker">Research project · Open source</p>
+<h1 class="blog-title">Agent Learning Order</h1>
+<p class="blog-subtitle">An inspectable experiment on evidence delivery order and procedural memory.</p>
+<p class="blog-meta"><time datetime="2026-09-09">September 9, 2026</time> &middot; Opai Elsheikh</p></header>
+<div class="blog-content"><p>Agent Learning Order is a reproducible local-model experiment on a simple question: does changing the arrival order of identical evidence change the lesson an agent keeps?</p>
+<div class="project-actions"><a href="/blogs/agent-learning-order/">Read the research article &rarr;</a><a href="https://github.com/opaielsheikh/agent-learning-order">View on GitHub &rarr;</a></div>
+<h2>The experiment</h2><p>Three authored service families, all six evidence orders, three memory seeds, and five memory conditions. Qwen2.5 3B and 7B ran locally on an M4 Pro MacBook: <strong>270 runs and 720 model calls</strong>, without paid inference.</p>
+<p>The 2,160 decisions repeat <strong>24 fixed inputs</strong>. This is a small exploratory memory evaluation with frozen model weights, not an RL training result.</p>
+<h2>What we observed</h2><p>On the 7B record-handling fixture, incremental memory averaged <strong>56.25%</strong> accuracy; summarizing all reports together scored <strong>100%</strong>. Incremental order averages ranged from 0% to 100%.</p>
+<img src="/assets/agent-learning-order/orders.png" alt="Incremental memory accuracy across all six report orders for both local models" width="2160" height="810">
+<p>Results vary by task: 7B retry was stable, cache performance was weak, and 74 of 135 smaller-model outputs failed the strict interface. The article includes those failures, a separate format sensitivity analysis, and the closest prior work. No world-first or general agent-weakness claim.</p>
+<h2>Explore the artifacts</h2><ul><li><a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/REPRODUCING.md">Reproduce the experiment or audit scores without a model</a></li><li><a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/results/TABLES.md">Complete result tables</a></li><li><a href="https://github.com/opaielsheikh/agent-learning-order/tree/main/results">Raw model transcripts and setup archive</a></li><li><a href="https://github.com/opaielsheikh/agent-learning-order/blob/main/PROTOCOL.md">Protocol and disclosed amendments</a></li></ul>
+<p>Code, authored data, and results are MIT licensed. Built by Opai Elsheikh with Codex assistance.</p></div></article>
+<div class="bottom-nav"><a href="/blogs/">&larr; All articles</a> &middot; <a href="/">Home</a></div>
+<footer class="social-links">
+      <a href="https://github.com/opaielsheikh" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/opai-elsheikh-0988181b9/" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://x.com/opaisOfficial" target="_blank" rel="noopener">X</a>
+      <a href="https://www.goodreads.com/user/show/203802157-opai" target="_blank" rel="noopener">Goodreads</a>
+    </footer></main></body></html>
