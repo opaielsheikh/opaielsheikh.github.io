@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Opai Elsheikh</title>
-  <meta name="description" content="Personal website of Opai Elsheikh">
+  <meta name="description" content="Independent post-training researcher and AI research engineer at LaunchPulse.ai.">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,6 +57,14 @@
       color: var(--text-main);
       margin-bottom: 1.25rem;
       line-height: 1.1;
+    }
+
+    .tagline {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      line-height: 1.4;
+      color: var(--text-muted);
+      margin: -0.5rem 0 1.25rem;
     }
 
     /* Bio Paragraph */
@@ -259,11 +267,10 @@
   <main class="container">
     <!-- Header Title -->
     <h1 class="name">Opai Elsheikh</h1>
+    <p class="tagline">Independent post-training researcher. AI research engineer at <a href="https://launchpulse.ai" target="_blank" rel="noopener">LaunchPulse.ai</a>.</p>
 
     <!-- Bio / Subtitle -->
-    <p class="bio">
-      AI research engineer at <a href="https://launchpulse.ai" target="_blank" rel="noopener">launchpulse.ai</a>.
-    </p>
+    <p class="bio">Researching how language models learn from feedback, and how training choices affect reasoning and tool use.</p>
 
     <!-- Navigation / Accordion Sections -->
     <div class="sections-list">
@@ -274,7 +281,10 @@
           <span class="section-prefix">&gt;</span> ABOUT
         </button>
         <div class="section-content">
-          <p>I work at <a href="https://launchpulse.ai" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">launchpulse.ai</a>, focusing on agentic AI, intelligent systems, and building resilient software infrastructure.</p>
+          <p>I’m an AI research engineer at <a href="https://launchpulse.ai" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">LaunchPulse</a> and an independent researcher focused on LLM post-training, reinforcement learning, and evaluation.</p>
+          <p>I study how language models learn from feedback, how reward design shapes their behaviour, and whether training improvements translate into more reliable reasoning and tool use. I share reproducible experiments, open-source code, and technical writing covering both results and failure cases.</p>
+          <p>At LaunchPulse, I work on agentic AI and the software infrastructure behind it. My interests connect model training with practical questions about how agents write code, use tools, and recover from mistakes.</p>
+          <p>Previously, I worked on NLP at General Motors and co-founded Taqriry AI, an Arabic AI meeting assistant. I’ve also built and shipped consumer apps, including Dribly and ChefQuest.</p>
         </div>
       </div>
 
@@ -286,6 +296,8 @@
         <div class="section-content">
           <ul>
             <li><strong><a href="/projects/agent-learning-order/" style="color: inherit; text-decoration: underline;">Agent Learning Order</a></strong> — A local-model memory experiment with 270 runs, raw transcripts, and reproducible evidence-order results.</li>
+            <li><strong><a href="https://github.com/opaielsheikh/ai-elo-ranker" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">AI Elo Ranker</a></strong> — A tournament engine for ranking model outputs with Swiss matchmaking, Elo and TrueSkill ratings, and live evaluation dashboards.</li>
+            <li><strong><a href="https://github.com/BillionsBobby/JevRouter" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">JevRouter</a></strong> — A contribution to a Jev-powered router that selects among models, tools, and subagents while applying availability, permission, risk, and confirmation policies.</li>
           </ul>
         </div>
       </div>
